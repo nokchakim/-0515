@@ -1,0 +1,37 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:SPX_Weight">
+
+  <sys:String x:Key="str_날짜">날짜</sys:String>
+  <sys:String x:Key="str_시간">시간</sys:String>
+  <sys:String x:Key="str_CreateDt">생산날짜</sys:String>
+  <sys:String x:Key="str_Result">결과</sys:String>
+  <sys:String x:Key="str_번호">No.</sys:String>
+  <sys:String x:Key="str_사용안함">사용안함</sys:String>
+  <sys:String x:Key="str_설정">설정</sys:String>
+  <sys:String x:Key="str_확인">확인</sys:String>
+  <sys:String x:Key="str_오류">오류</sys:String>
+  <sys:String x:Key="str_선택">선택</sys:String>
+  <sys:String x:Key="str_수정">수정</sys:String>
+  <sys:String x:Key="str_삭제">삭제</sys:String>
+  <sys:String x:Key="str_저장">저장</sys:String>
+  <sys:String x:Key="str_종료">종료</sys:String>
+  <sys:String x:Key="str_프린트">프린트</sys:String>  
+  
+  <sys:String x:Key="str_데이터">데이터</sys:String>
+  <sys:String x:Key="str_데이터설정">데이터 설정</sys:String>
+  <sys:String x:Key="str_데이터내보내기멘트">데이터 내보내기</sys:String>
+  <sys:String x:Key="str_데이터가져오기멘트">데이터 가져오기</sys:String>
+  <sys:String x:Key="str_데이터내보내기">내보내기</sys:String>
+  <sys:String x:Key="str_데이터가져오기">가져오기</sys:String>
+  
+  <sys:String x:Key="str_서버연결끊김">서버와 연결이 끊어졌습니다.</sys:String>
+  <sys:String x:Key="str_서버연결실패">서버와 연결하지 못했습니다. 서버를 확인해주세요.</sys:String>
+
+  <sys:String x:Key="str_LOT">LOT</sys:String>
+  <sys:String x:Key="str_LINE">LINE</sys:String>
+  <sys:String x:Key="str_POS">POS</sys:String>
+  <sys:String x:Key="str_Doff">Doff</sys:String>
+  <sys:String x:Key="str_End">End</sys:String>
+
+</ResourceDictionary>

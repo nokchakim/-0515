@@ -1,0 +1,329 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Reflection;
+using System.Data;
+using System.IO;
+using SPX_Weight.Common;
+using Excel = Microsoft.Office.Interop.Excel;
+using MessageBox = System.Windows.Forms.MessageBox;
+
+
+namespace SPX_Weight
+{
+    public class MakeExcelCommonData
+    {
+        public string strLine = "00";
+        public string strRange = "0.0 ~ 0.0";
+        public string strmin = "0.0";
+        public string strmax = "0.0";
+        public string strLotno = "0000";
+        public string strDate = "20000101";
+
+        public string slot = "0";
+        public string sline = "00";
+        public string sDof = "0";
+        public int SetScale = 0;
+        public List<string> NextStartEnd = new List<string>();
+
+
+
+        public void makeCommonData(string line, string range, string lot, string date, string dof, string min, string max, List<string> Sidelist, int scale)
+        {
+            strLine = string.Format("#{0}M/No Scale Check Sheet", line);
+            strRange = string.Format(range);
+            strLotno = string.Format("LOT {0}", lot);
+            strDate = string.Format(date);
+            slot = lot;
+            sline = line;
+            sDof = dof;
+            strmin = min;
+            strmax = max;
+            NextStartEnd = Sidelist;
+            SetScale = scale;
+        }
+    }
+
+    class ExportExcel
+    {
+        public Microsoft.Office.Interop.Excel.Application APP = null;
+        public Microsoft.Office.Interop.Excel.Workbook WB = null;
+        public Microsoft.Office.Interop.Excel.Worksheet WS = null;
+        public Microsoft.Office.Interop.Excel.Range Range = null;
+
+        //공통으로title 에 쓰는거라 Common 으로 달앗음
+        private string CmOverRange;
+        private string CmLotNo;
+        private string CmErrorRange;
+        private string Cmtitle;
+        private string CmDate;
+
+
+        public void Export_ExcelFile()
+        {
+
+        }
+
+        public void Export_Excel(DataTable table, int scale, int runcount, MakeExcelCommonData common, List<string> side, List<string> pos, int endcount, string CurrentProductDate)
+        {
+            string filepath = GetExcelformatFile(scale, common.slot, common.sline, common.sDof, CurrentProductDate);
+
+            List<double> rowvlaue = new List<double>();
+            List<double> rowvlaueEtc = new List<double>();
+
+            int columnscount = runcount + 6;
+            try
+            {
+                for (var i = 0; i < table.Rows.Count; i++)
+                {
+                    for (var j = 6; j < columnscount; j++)
+                    {
+                        if (!string.IsNullOrEmpty(table.Rows[i][j].ToString()))
+                        {
+                            rowvlaue.Add(Convert.ToDouble(table.Rows[i][j]));
+                        }                           
+                    }
+                    //한줄의 평균 최대 최소 갭 계산해서 리턴줌
+                    //rowvlaueEtc = MinMaxAvgCalculate(rowvlaue);
+                }
+            }
+            catch(Exception ex)
+            {
+                LogManager.getInstance().writeLog(ex.ToString());
+            }            
+    
+            WriteFileData(table, filepath, common, side, pos, endcount);
+            System.Diagnostics.Process.Start(filepath);
+                     
+        }
+        /// <summary>
+        /// 엑셀 파일 내용 채우기 
+        /// </summary>        
+        /// <returns></returns>
+        private bool WriteFileData(DataTable ds, string filepath, MakeExcelCommonData common, List<string> side, List<string> pos, int endcount)
+        {
+            var excelapp = new Excel.Application();
+            WB = excelapp.Workbooks.Open(filepath);
+            excelapp.DisplayAlerts = false;
+            try
+            {               
+                //excelapp.Workbooks.Add();
+
+                Excel._Worksheet worksheet = WB.ActiveSheet;
+
+                worksheet.Cells[4, 6] = common.strRange;
+                worksheet.Cells[3, 6] = common.strLotno;
+                worksheet.Cells[1, 1] = common.strLine;
+                worksheet.Cells[4, 1] = common.strDate;
+                worksheet.Cells[5, 6] = common.strmin;
+                worksheet.Cells[5, 7] = common.strmax;
+
+                int currentarrchk = 0;
+                int beforepos = 0;
+                int startPosposition = 0;
+                int posMergecount = 0;
+                string temppos = "";
+                //여기서 side랑 pos가지고 위치를 다시 정해줘야 합니다. 
+                for (var i = 0; i < ds.Rows.Count; i++)
+                {
+                    //POS의 전체를 가지고 와서 지금 들어가는 위치가 어딘지 확인 하기
+                    //POS 시작 포스 * 사이드 갯수 + 8 
+                    int endc = common.NextStartEnd.Count;
+                    Int32 startpos = ReturnPosPosition(Convert.ToInt32(ds.Rows[i][3]), pos);
+                                      
+                    //End Range
+                    string[] tempside = ds.Rows[i][5].ToString().Split('~');
+                    int sidec = common.NextStartEnd.IndexOf(ds.Rows[i][5].ToString());
+                    string temptemp = tempside[0]?.Substring(0, tempside[0].Length - 2);
+
+                    int currentpos = Convert.ToInt32(ds.Rows[i][3]);
+                    //POS
+                    worksheet.Cells[(startpos * endc) + sidec + 8, 1] = ds.Rows[i][3];
+                    if(i == 0) startPosposition = (startpos * endc) + sidec + 8;
+                    //DOF
+                    worksheet.Cells[(startpos * endc) + sidec + 8, 3] = ds.Rows[i][2];
+                    worksheet.Cells[(startpos * endc) + sidec + 8, 2] = temptemp;
+                    worksheet.Cells[(startpos * endc) + sidec + 8, 5] = ds.Rows[i][4].ToString();
+
+                    for (var j = 6; j < 6 + common.SetScale; j++)
+                    {
+                        int r = j - 6;
+                        worksheet.Cells[(startpos * endc) + sidec + 8, r + 10] = ds.Rows[i][j];
+                    }
+
+                    if((ds.Rows[i][3].ToString() != temppos && temppos != "") || i == ds.Rows.Count - 1)
+                    {
+                        int k = posMergecount - 1;
+                        if (i == ds.Rows.Count - 1) k = posMergecount;
+                        worksheet.Range[worksheet.Cells[startPosposition, 4], worksheet.Cells[startPosposition + k, 4]].Merge();
+                        InFomula(worksheet, startPosposition, 4, posMergecount, endcount);
+                        posMergecount = 0;
+                        startPosposition = (startpos * endc) + sidec + 8;
+                    }
+                    posMergecount += 1;
+                    temppos = ds.Rows[i][3].ToString();
+
+                }
+                //worsheet.SaveAs();
+                excelapp.DisplayAlerts = true;
+                WB.Close(true);
+                WB = null;
+                excelapp.Quit();
+            }
+            catch (Exception ex)
+            {
+                LogManager.getInstance().writeLog(ex.ToString());
+                WB.Close(true);
+                WB = null;
+                excelapp.Quit();
+            }
+         
+            return false;
+        }
+
+        private List<double> MinMaxAvgCalculate(List<double> value)
+        {
+            List<double> rtvalue = new List<double>();
+
+            //Min
+            rtvalue.Add(value.Min());
+            //Max
+            rtvalue.Add(value.Max());
+            //Avg
+            rtvalue.Add(value.Average());
+            //R
+            rtvalue.Add((rtvalue[1] - rtvalue[0]));
+
+            return rtvalue;
+        }
+
+        private string GetExcelformatFile(int scale, string lot, string line, string dof, string CurrentProductDate)
+        {
+            string fileName = "";
+            try
+            {
+                string folderPath = System.IO.Directory.GetCurrentDirectory();
+                folderPath = string.Format(folderPath + "\\BaseExcel\\");
+                string basefile = string.Format("Base{0}.xlsx", scale);
+                string sourcepath = folderPath + basefile;
+
+                string targetpath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                targetpath = string.Format(targetpath + "\\ExcelReport\\");
+
+                FileInfo file = new FileInfo(sourcepath);
+
+                if (file.Exists)
+                {
+                    if (!Directory.Exists(targetpath))
+                        Directory.CreateDirectory(targetpath);
+
+                    DateTime dt = DateTime.Now;
+                    string targetfile = string.Format("{0}-{1}Line-{2}-Dof({3}).xlsx", CurrentProductDate, line, lot, dof);
+                    targetpath = string.Format(targetpath + targetfile);
+                    FileInfo exitst = new FileInfo(targetpath);
+
+                    if (exitst.Exists)
+                    {
+                        var result = MessageBox.Show("파일이 있습니다 덮어 쓰시겠습니까?", "notice", System.Windows.Forms.MessageBoxButtons.YesNo);
+
+                        if (System.Windows.Forms.DialogResult.Yes == result)
+                        {
+                            exitst.Delete();
+                        }                            
+                    }
+                    file.CopyTo(targetpath);
+                    fileName = targetpath;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.getInstance().writeLog(ex.ToString());
+                MessageBox.Show("파일이 열려있습니다.");
+            }
+
+            return fileName;
+        }
+
+        public void SetDataTableInfo(string Lot, string Range, string error)
+        {
+            CmOverRange = Range;
+            CmLotNo = Lot;
+            CmErrorRange = error;
+        }
+
+        private void SetCommonData()
+        {
+
+        }
+
+
+
+        public void ClearCommonData()
+        {
+            CmOverRange = "";
+            CmLotNo = "";
+            CmErrorRange = "";
+            Cmtitle = "";
+            CmDate = "";
+        }
+
+        public void SideStyle(List<string> side, List<string> pos, int endcount, Excel._Worksheet worksheet)
+        {            
+            //POS 기준으로 쭉 쓰고 
+            //SIDE를 순서대로 배치 하고 
+                //하면서 endcount랑 setscale 가지고 1/2 로 나눌지 두줄로 쓸지 정해야함
+                //SIDE기준으로 셀 병합
+            //그리고 다음 SIDE내리면서 반복
+            //SIDE 다 하고 POS기준으로 또 병합
+        }
+
+        /// <summary>
+        /// POS 부분만 합치는걸 기준으로 함
+        /// </summary>        
+        public void CellMerge(Excel._Worksheet ws, int Y1, int Y2)
+        {
+            Excel.Range rg1 = ws.Range[ws.Cells[Y1, 4], ws.Cells[Y2, 4]].Merge();
+            rg1.Merge(true);        
+            //rg1.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+            //rg1.VerticalAlignment = 2;
+            //rg1.Borders.LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlDash;
+            rg1.Clear();
+        }
+
+        public void InFomula(Excel._Worksheet ws, int y, int x, int range, int count)
+        {
+            Excel.Range rg = ws.Cells[y, x];
+            //rg.Formula = string.Format("=AVERAGE(J{0}:{1}{2})",y, TransCellLocate(10+count-6), y+ range);
+            ws.Cells[y,x] = string.Format("=AVERAGE(J{0}:{1}{2})", y, TransCellLocate(10 + count - 1), y + range);
+        }
+
+        public string TransCellLocate(int columnNumber)
+        {
+            int dividend = columnNumber;
+            string columnName = String.Empty;
+            int modulo;
+            while (dividend > 0)
+            {
+                modulo = (dividend - 1) % 26;
+                columnName = Convert.ToChar(65 + modulo).ToString() + columnName;
+                dividend = (int)((dividend - modulo) / 26);
+            }
+            return columnName;
+        }
+
+        /// <summary>
+        /// 지금 POS를 받아다가 전체 중에 어디에 위치해야 하는지 리턴값을 줌
+        /// </summary>
+        /// <param name="currentpos"></param>
+        /// <returns></returns>
+        public Int32 ReturnPosPosition(int currentpos, List<string> Pos)
+        {
+            Int32 rt = 0;
+            string temp = currentpos.ToString("D2");
+            rt = Pos.IndexOf(temp);
+            return rt;
+        }
+    }
+}

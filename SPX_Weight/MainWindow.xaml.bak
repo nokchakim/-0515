@@ -1,0 +1,204 @@
+﻿<Window x:Name="MainWindowView" x:Class="SPX_Weight.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SPX_Weight"
+        mc:Ignorable="d"
+        Title="HYOSUNG ITX                 Ver:20210614 " Height="850" Width="1280" BorderBrush="{DynamicResource {x:Static SystemColors.DesktopBrushKey}}" Background="#FFFBF6F6" ResizeMode="CanMinimize" Topmost="False" Closed="MainWindowView_Closed">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35*"/>
+            <RowDefinition Height="213*"/>
+            <RowDefinition x:Name="SetTableGrid12Use" Height="101*"/>
+            <RowDefinition/>
+            <RowDefinition Height="418*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+
+            <ColumnDefinition/>
+
+        </Grid.ColumnDefinitions>
+
+        <Grid x:Name="MainGrid" Margin="1,2,-0.4,-1" RenderTransformOrigin="0.497,0.456" Grid.RowSpan="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48" />
+                <RowDefinition Height="48.8" />
+                <RowDefinition Height="50.4" />
+                <RowDefinition Height="96"/>
+                <RowDefinition Height="104"/>
+                <RowDefinition x:Name="SetTableGrid24Use" Height="580.8" FrameworkElement.FlowDirection="RightToLeft" />
+            </Grid.RowDefinitions>
+            <Button x:Name="btn_Home" Content="Home(clear)" HorizontalAlignment="Left" VerticalAlignment="Top" Width="115" Height="45" FontWeight="Bold" Foreground="#FFE2E7DC" Click="btn_Home_Click" Panel.ZIndex="3" Margin="11,0,0,0">
+                <Button.Background>
+                    <ImageBrush ImageSource="image/my_home_pre.png"/>
+                </Button.Background>
+            </Button>
+            <Button x:Name="btn_Setting" Content="Setting" HorizontalAlignment="Left" Margin="126,0,0,0" VerticalAlignment="Top" Width="115" Height="45" FontFamily="{DynamicResource {x:Static SystemFonts.CaptionFontFamilyKey}}" FontWeight="Bold" Foreground="#FFE2E7DC" Click="btn_Setting_Click" Panel.ZIndex="3">
+                <Button.Background>
+                    <ImageBrush ImageSource="image/my_setting_pre.png"/>
+                </Button.Background>
+            </Button>
+            <Button x:Name="button" Content="Test " HorizontalAlignment="Left" Margin="241,0,0,0" VerticalAlignment="Top" Width="115" Height="45" Click="button_Click_1" Panel.ZIndex="3">
+                <Button.Background>
+                    <ImageBrush ImageSource="image/my_equip_pre.png"/>
+                </Button.Background>
+            </Button>
+            <DatePicker x:Name="ProductDataPicker" HorizontalAlignment="Left" Margin="61,10,0,0" VerticalAlignment="Top" Height="28" Width="205" FontSize="18" Grid.Row="1" SelectedDateChanged="SelectedDateChanged" Panel.ZIndex="3"/>
+            <Label x:Name="label_DAY" Content="날짜" HorizontalAlignment="Left" Margin="10,9,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="18" Height="34" Width="46"/>
+            <Label x:Name="label_LOT" Content="LOT" HorizontalAlignment="Left" Margin="437,5,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="18" Height="34" Width="42"/>
+            <ComboBox x:Name="comboBox_LOT" HorizontalAlignment="Left" Margin="592,9,0,0" Grid.Row="1" VerticalAlignment="Top" Width="20" Height="28" Panel.ZIndex="3" SelectionChanged="comboBox_LOT_SelectionChanged" FontSize="16" />
+            <Label x:Name="label_Weight" Content="Weight" HorizontalAlignment="Left" Margin="473,1.2,0,0" Grid.Row="2" VerticalAlignment="Top" FontSize="18" Height="34" Width="74"/>
+            <Label x:Name="label_WeightMin" Content="Label" HorizontalAlignment="Left" Margin="554,1.2,0,0" Grid.Row="2" VerticalAlignment="Top" Width="103" Height="30" BorderThickness="1" Background="#FFF7F7F7" ClipToBounds="True" BorderBrush="#FF706767" Panel.ZIndex="3" FontSize="16"/>
+            <Label x:Name="label_WeightMax" HorizontalAlignment="Left" Margin="690,1.2,0,0" Grid.Row="2" VerticalAlignment="Top" Width="103" Height="30" BorderBrush="#FF706767" BorderThickness="1" Background="#FFF7F7F7" Panel.ZIndex="3" FontSize="16"/>
+            <Label x:Name="label_Copy2" Content="~" HorizontalAlignment="Left" Margin="662,1.2,0,0" Grid.Row="2" VerticalAlignment="Top" FontSize="18" Height="34" Width="23"/>
+            <TextBox x:Name="textBox" TextWrapping="Wrap" Text="±" Margin="1044,1.2,194.8,19.2" Background="{x:Null}" FontSize="24" BorderBrush="{x:Null}" Grid.Row="2" IsReadOnly="True"/>
+            <Label x:Name="label_SL" Content="Label" HorizontalAlignment="Left" Margin="935,1.2,0,0" Grid.Row="2" VerticalAlignment="Top" Width="103" Height="30" BorderBrush="#FF706767" BorderThickness="1" Background="#FFF7F7F7" Panel.ZIndex="9" FontSize="16"/>
+            <Label x:Name="label_HO" Content="#LINE" HorizontalAlignment="Left" Margin="274,5,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="18" Height="34" Width="58"/>
+            <ComboBox x:Name="comboBox_HO" HorizontalAlignment="Left" Margin="334,9,0,0" Grid.Row="1" VerticalAlignment="Top" Width="94" Height="28" Panel.ZIndex="3" SelectionChanged="comboBox_HO_SelectionChanged" FontSize="16"/>
+            <Label x:Name="label_POS" Content="POS" HorizontalAlignment="Left" Margin="612,5,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="18" Height="34" Width="44"/>
+            <ComboBox x:Name="comboBox_POS" HorizontalAlignment="Left" Margin="663,9,0,0" Grid.Row="1" VerticalAlignment="Top" Width="94" Height="28" Panel.ZIndex="3" SelectionChanged="comboBox_POS_SelectionChanged" FontSize="16"/>
+            <Label x:Name="label_DOF" Content="DOF" HorizontalAlignment="Left" Margin="1077,5,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="18" Height="34" Width="46"/>
+            <ComboBox x:Name="comboBox_DOF" HorizontalAlignment="Left" Margin="1127,9,0,0" Grid.Row="1" VerticalAlignment="Top" Width="94" Height="28" Panel.ZIndex="3" FontSize="16"/>
+            <Label x:Name="label_SIDE" Content="측" HorizontalAlignment="Left" Margin="773,5,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="18" Height="34" Width="28"/>
+            <ComboBox x:Name="comboBox_SIDE" HorizontalAlignment="Left" Margin="818,9,0,0" Grid.Row="1" VerticalAlignment="Top" Width="94" Height="28" Panel.ZIndex="3" FontSize="16" SelectionChanged="comboBox_SIDE_SelectionChanged"/>
+            <Label x:Name="label_Range" Content="Error Range" HorizontalAlignment="Left" Margin="825,1.2,0,0" Grid.Row="2" VerticalAlignment="Top" FontSize="18" Height="34" Width="110" Panel.ZIndex="3"/>
+            <Label x:Name="label_ErrorRange" Content="Label" HorizontalAlignment="Left" Margin="1084,1.2,0,0" Grid.Row="2" VerticalAlignment="Top" Width="103" Height="30" BorderBrush="#FF706767" BorderThickness="1" Background="#FFF7F7F7" Panel.ZIndex="9" FontSize="16"/>
+            <CheckBox x:Name="checkBox_OneSide" Content="Side Only" Margin="11,1.2,1162.8,0" Grid.Row="2" VerticalAlignment="Top" FontSize="16" Height="20" Panel.ZIndex="3"/>
+            <CheckBox x:Name="checkBox_Reverse" Content="Reverse" HorizontalAlignment="Left" Margin="11,26.2,0,0" Grid.Row="2" VerticalAlignment="Top" FontSize="16" Height="20" Width="90" Panel.ZIndex="3" Checked="checkBox_Reverse_Checked"/>
+
+            <Grid x:Name="Grid_Weight1" HorizontalAlignment="Left" Height="89" Margin="9,3.8,0,0" Grid.Row="3" VerticalAlignment="Top" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight01" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W01" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight07" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W07" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight2" HorizontalAlignment="Left" Height="89" Margin="219,2.8,0,0" Grid.Row="3" VerticalAlignment="Top" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight02" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W02" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight08" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W08" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight3" HorizontalAlignment="Left" Height="89" Margin="429,3.8,0,0" Grid.Row="3" VerticalAlignment="Top" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight03" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W03" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight09" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap"
+                           Text="W09" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight4" HorizontalAlignment="Left" Height="89" Margin="638,3.8,0,0" Grid.Row="3" VerticalAlignment="Top" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight04" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W04" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight10" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W10" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight5" HorizontalAlignment="Left" Height="89" Margin="847,2.8,0,0" Grid.Row="3" VerticalAlignment="Top" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight05" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W05" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight11" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W11" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight6" HorizontalAlignment="Left" Height="89" Margin="1056,2.8,0,0" Grid.Row="3" VerticalAlignment="Top" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight06" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W06" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight12" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W12" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight7" HorizontalAlignment="Left" Height="88" Margin="9,7.8,0,8.2" Grid.Row="4" VerticalAlignment="Center" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight13" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap"
+                           Text="W13" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight19" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W19" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight8" HorizontalAlignment="Left" Height="88" Margin="219,7.8,0,8.2" Grid.Row="4" VerticalAlignment="Center" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight14" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W14" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight20" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W20" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight9" HorizontalAlignment="Left" Height="88" Margin="429,7.8,0,8.2" Grid.Row="4" VerticalAlignment="Center" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight15" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W15" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight21" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W21" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight10" HorizontalAlignment="Left" Height="88" Margin="638,7.8,0,8.2" Grid.Row="4" VerticalAlignment="Center" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight16" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W16" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight22" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap"
+                           Text="W22" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight11" HorizontalAlignment="Left" Height="88" Margin="847,7.8,0,8.2" Grid.Row="4" VerticalAlignment="Center" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight17" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap"
+                           Text="W17" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight23" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W23" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Grid x:Name="Grid_Weight12" HorizontalAlignment="Left" Height="88" Margin="1056,7.8,0,8.2" Grid.Row="4" VerticalAlignment="Center" Width="205" Background="#FFEADDDD">
+                <TextBox x:Name="text_Weight18" HorizontalAlignment="Left" Margin="70,0,0,0" TextWrapping="Wrap" 
+                           Text="W18" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+                <TextBox x:Name="text_Weight24" HorizontalAlignment="Left" Margin="70,45,0,0" TextWrapping="Wrap" 
+                           Text="W24" VerticalAlignment="Top" Height="43" Width="135" Background="#FFE3E9FA" FontSize="24"/>
+            </Grid>
+            <Button x:Name="button_exportQMS" Content="GET QMS" HorizontalAlignment="Left" Margin="358,0,0,0" VerticalAlignment="Top" Width="115" Height="45" Click="button_exportQMS_Click" Panel.ZIndex="3">
+                <Button.Background>
+                    <ImageBrush ImageSource="image/my_equip_pre.png"/>
+                </Button.Background>
+            </Button>
+            <Label x:Name="label_id" Content="USER ID" HorizontalAlignment="Left" Margin="687,5,0,0" VerticalAlignment="Top" FontSize="18" Height="34" Width="89"/>
+            <TextBox x:Name="text_UserID" HorizontalAlignment="Left" Height="35" Margin="776,4,0,0" 
+                     TextWrapping="Wrap" 
+                           Text="" VerticalAlignment="Top"  Width="131" Background="#FFE3E9FA" FontSize="20" LostFocus="text_UserID_LostFocus"/>
+            <Grid x:Name="TableGrid" HorizontalAlignment="Left" Height="433" Grid.Row="3" VerticalAlignment="Top" Width="1283" Margin="-10,90.8,-0.2,0" Grid.RowSpan="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <DataGrid x:Name="dataGrid" HorizontalAlignment="Left" Height="421" VerticalAlignment="Top" Width="1273" Margin="10,10,0,0" HeadersVisibility="Column" LoadingRow="dataGrid_LoadingRow">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding HXDay}" Header="Data" Width="110" MaxWidth="100" MinWidth="100" FontSize="16" IsReadOnly="True"/>
+                        <DataGridTextColumn Binding="{Binding HXLine}" Header="Line" MaxWidth="60" MinWidth="50" Width="50"/>
+                        <DataGridTextColumn Binding="{Binding HXDof}"  Header="DOF" MaxWidth="60" MinWidth="40" Width="40"/>
+                        <DataGridTextColumn Binding="{Binding HXPos}"  Header="Pos" MaxWidth="50" MinWidth="50" Width="50"/>
+                        <DataGridTextColumn Binding="{Binding HXSide}"  Header="Side" MaxWidth="50" MinWidth="50" Width="70"/>
+                        <DataGridTextColumn Binding="{Binding HXRage}"  Header="Range" MaxWidth="70" MinWidth="65" Width="65"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight1}"  Header="1" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight2}"  Header="2" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight3}"  Header="3" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight4}"  Header="4" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight5}"  Header="5" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight6}"  Header="6" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight7}"  Header="7" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight8}"  Header="8" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight9}"  Header="9" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight10}"  Header="10" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight11}"  Header="11" MaxWidth="77" MinWidth="75" Width="75"/>
+                        <DataGridTextColumn Binding="{Binding HXWeight12}"  Header="12" MaxWidth="77" MinWidth="77" Width="75"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+            <Grid x:Name="botButtonGrid" HorizontalAlignment="Left" Height="57" Margin="0,411.8,-0.2,0" Grid.Row="5" VerticalAlignment="Top" Width="1273">
+                <Button x:Name="button_Start" Content="Start" HorizontalAlignment="Left" VerticalAlignment="Top" Width="124" Height="47" Click="button_Start_Click"/>
+                <Button x:Name="button_ExcelExport" Content="Excel Export" HorizontalAlignment="Left" VerticalAlignment="Top" Width="124" Height="47" Margin="138,0,0,0" Click="button_ExcelExport_Click"/>
+                <Button x:Name="button_QMS_Upload" Content="QMS UpLoad" HorizontalAlignment="Left" VerticalAlignment="Top" Width="124" Height="47" Margin="281,0,0,0" Click="button_QMS_Upload_Click"/>
+                <Button x:Name="button_DeleteROW" Content="Row Delete" HorizontalAlignment="Left" VerticalAlignment="Top" Width="124" Height="47" Margin="480,0,0,0" Click="button_DeleteROW_Click"/>
+                <Button x:Name="button_Skip" Content="Skip" HorizontalAlignment="Left" VerticalAlignment="Top" Width="124" Height="47" Margin="617,0,0,0" Click="button_Skip_Click"/>
+            </Grid>
+            <Label x:Name="label_SideList" Content="Label" HorizontalAlignment="Left" Margin="921,10,0,0" Grid.Row="1" VerticalAlignment="Top" Width="73"/>
+            <CheckBox x:Name="checkBox_2Scale1Result" Content="1Yarn 2Scale" HorizontalAlignment="Left" Margin="126,1.2,0,29.2" Grid.Row="2" Checked="checkBox_2Scale1Result_Checked" FontSize="16" Width="115" Height="20"/>
+            <CheckBox x:Name="checkBox_IgnoreLast" Content="Ignore Last" HorizontalAlignment="Left" Margin="126,26.2,0,0" Grid.Row="2" VerticalAlignment="Top" FontSize="16" Width="102" Checked="checkBox_IgnoreLast_Checked" Height="20"/>
+            <CheckBox x:Name="checkBox_TestLot" Content="Test Lot Process" HorizontalAlignment="Left" Margin="268,1.2,0,29.2" Grid.Row="2" FontSize="16" Width="151" Height="20" Checked="checkBox_TestLot_Checked" Unchecked="checkBox_TestLot_Checked"/>
+            <TextBox x:Name="textBox_TEST_LOT" HorizontalAlignment="Left" Height="23" Margin="289,25.2,0,0" Grid.Row="2" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="139"/>
+            <Label x:Name="label_Conncet" Content="Connect" HorizontalAlignment="Left" Margin="1184,0,-0.2,0" VerticalAlignment="Top" Height="42" Width="89" FontSize="18" FontWeight="Bold" FontFamily="Malgun Gothic" Foreground="#FFE2E7DC"/>
+            <CheckBox x:Name="checkBox_SideCheck" Content="" Margin="1025,15,220.8,0" Grid.Row="1" VerticalAlignment="Top" FontSize="16" Height="20" Panel.ZIndex="3" Checked="checkBox_SideCheck_Checked"/>
+            <TextBox x:Name="text_UserID_Copy" HorizontalAlignment="Left" Height="35" Margin="776,4,0,0" 
+                TextWrapping="Wrap" 
+                Text="" VerticalAlignment="Top"  Width="131" Background="#FFE3E9FA" FontSize="20" LostFocus="text_UserID_LostFocus"/>
+            <TextBox x:Name="text_Lotinput" HorizontalAlignment="Left" Height="31" Margin="488,8,0,0" Grid.Row="1" TextWrapping="Wrap" Text="LOT" VerticalAlignment="Top" Width="99" KeyUp="text_Lotinput_KeyUp" FontSize="18"/>
+
+        </Grid>
+    </Grid>
+
+</Window>

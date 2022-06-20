@@ -1,0 +1,79 @@
+﻿2021-03-24 : 구미 요청으로 serialData가 앞에서 부터 End 증가 말고 뒤에서부터 End 증가 옵션 추가 Reverse 체크 박스
+2021-03-25 : Grid 항목중 날짜, 값, Range 수정 안되게 readonly 항목으로 변경
+
+//Excel Export 내용
+
+타이틀 - #13M/No Scale Check Sheet  -A1
+* RANGE : 3000g ~ 3030g  -U2
+* LOT NO. : SPKC10SE4635-16  -U3
+Date  : 2020-06-16  -A4
+
+데이터 입력은 J8부터 시작됨 Q8 까지
+
+
+엑셀 출력 정확한지
+Table 가지고 엑셀 출력 확인
+
+로컬db 결과데이터 flag 잘 가동 하는지 테스트
+
+시리얼 데이터 파싱 진행 
+
+생산데이터 입력 쿼리
+
+IF NOT EXISTS(SELECT * ROM PRODUCT_PLAN WHERE Product_Date = 20190219 AND Plant_Id = 1141 AND Lot = '3853B' AND Lot_Seq = 1 AND Line_Id = '#06' AND Pos = 32 AND START_END = 'L01') begin INSERT INTO PRODUCT_PLAN VALUES('20190219','1141','#06','32','3853B','1',N'L01',N'LU',N'L12',N'12','','N','','2019-02-19 07:34:09','2021-01-21 04:36:17') END
+
+GEt Pos end 
+
+SELECT PLANT_ID, LINE_ID, POS, LOT, START_END, SIDE ,LOT_SEQ, END_QTY FROM [PRODUCT_PLAN] WHERE Plant_Id = '1141' AND Pos = '09' AND Line_Id = '#06' AND Lot_Seq = '1'AND CANCEL_YN = 'N'
+
+get spec
+
+SELECT PLANT_ID, LOT, LOT_SEQ, APPLY_DATE, USL, SL, LSL, UCL, CL, LCL, MARK, SL_TOLERANCE, CL_TOLERANCE FROM [SPIN_WEIGHT_SPEC] (nolock) WHERE PLANT_ID = '1141'
+
+insert spec
+
+IF NOT EXISTS(SELECT * FROM WEIGHT_SPEC WHERE PLANT_ID = '1141' AND LOT = '4890Y' AND LOT_SEQ = 2 AND APPLY_DATE = 20190618) begin INSERT INTO WEIGHT_SPEC VALUES('1141','4890Y','2','20190618','537.50000','525.00000','512.50000','0','525.00000','0','±','12.5','') END 
+
+//통신 하는데 마지막 0D 0A 한번만 들어옴 문서에는 0A 가 두번 들어온다고 써져있음
+
+
+210514 
+실제 장비에서의 저울 갯수가 6개인데 신호는 8개로 들어올때 있음
+이게 리버스 모드에서 문제가 됨 뒤집으면 앞에 두개 0 데이터라서 
+리버스 모드 켜져 있을때는 set_scale 와 inputdata뭐시기랑 차이를 가지고 For 문에서 0 + 차이 해서 넣어줌
+
+왜 빨간색 판정부분 수정이안되어잇지요? LSL USL 변경함
+
+그리드 다 수정가능하도록 변경 완료
+
+엑셀 파일저장할때 도프 를 차수로 해서 파일명 만들고 LOT 크게 써줌
+
+작업하던거 잘못 가져와서 
+  onecyclepass = false; 이거 안되어져있었음 사무실에서 다시 수정함
+
+
+해외 공장 로드셀  두줄짜리 가 대부분임 
+한줄에 사이드 한개씩 인 경우도 있는 반면 두줄에 사이드 한개짜리도 있는 것으로 보임
+설비 너무 개판으로 만들었어 
+룰이 하나도 없어 주먹구구식으로 만들었음
+
+211020
+side 선택해서 하는 부분 적용
+claer 적용
+지관무게 소수점 등록 가능
+spec Mark '~' 등록해서 처리 할 수 있도록 진행 함
+
+관리자 권한을 위해 
+app.manifest 
+ <requestedExecutionLevel level="asInvoker" uiAccess="false" />
+ ->  <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+로 변환
+
+211207
+LOT 다시 합침
+2Scale 기능 보안 해서 적용함 쉽지 않았음
+
+220127
+Row Delete 할때 마지막 side 로 되돌리기 
+스펙 min max 텍스트로 바꾼다음에 거기 입력할 수 있게 해서 처리 하기 
+테스트 랏은 그냥 기존대로 진행함 랏이랑 뭐랑 추가로 넣을수가 없어 그렇게 하긴 어렵다
