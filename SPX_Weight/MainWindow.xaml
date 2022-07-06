@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SPX_Weight"
         mc:Ignorable="d"
-        Title="HYOSUNG ITX                 Ver:20220619R " Height="820" Width="1280" BorderBrush="{DynamicResource {x:Static SystemColors.DesktopBrushKey}}" Background="#FFFBF6F6" ResizeMode="CanMinimize" Topmost="False" Closed="MainWindowView_Closed">
+        Title="HYOSUNG ITX                 Ver:20220704RD " Height="820" Width="1280" BorderBrush="{DynamicResource {x:Static SystemColors.DesktopBrushKey}}" Background="#FFFBF6F6" ResizeMode="CanMinimize" Topmost="False" Closed="MainWindowView_Closed">
     <Window.Resources>
         <local:ValueToBruchConverter x:Key="ValueToBruchConverter"/>
     </Window.Resources>
@@ -254,6 +254,11 @@
             <TextBox x:Name="textBox_sideSelect" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="645.2,11,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="85"/>
             <Button x:Name="button_sideSet" Content="S" Grid.Column="1" HorizontalAlignment="Left" Margin="609.2,0,0,1.2" Grid.Row="1" Width="16" FontSize="10" Click="button_sideSet_Click" Height="16" VerticalAlignment="Bottom"/>
             <Button x:Name="btn_SideClear" Content="Clr" Grid.Column="1" HorizontalAlignment="Left" Margin="733.2,13,0,0" Grid.Row="1" VerticalAlignment="Top" Width="33" RenderTransformOrigin="-0.636,0.104" Click="btn_SideClear_Click"/>
+            <Button x:Name="button_DEVELOP_TEST" Content="DEVELOP" HorizontalAlignment="Left" Margin="191.2,0,0,0" VerticalAlignment="Top" Width="115" Height="45" FontWeight="Bold" Foreground="#FFE2E7DC" Panel.ZIndex="3" Grid.Column="1" Click="button_DEVELOP_TEST_Click">
+                <Button.Background>
+                    <ImageBrush ImageSource="image/my_search_pre.png"/>
+                </Button.Background>
+            </Button>
 
         </Grid>
         <Label x:Name="label_Conncet2" Content="Connect" HorizontalAlignment="Left" Margin="1089,2,0,0" VerticalAlignment="Top" Height="39" Width="89" FontWeight="Bold" FontFamily="Malgun Gothic" Foreground="#FFE2E7DC" FontSize="18" Grid.RowSpan="2"/>

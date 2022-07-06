@@ -124,6 +124,7 @@ namespace SPX_Weight
 
         private List<Double> getSerialData = new List<double>();
         private Dictionary<int, double> dicSerialData = new Dictionary<int, double>();
+        private Dictionary<int, double> dicSerialData2nd = new Dictionary<int, double>();
         Dictionary<string, string> SetLotAndEnd = new Dictionary<string, string>();
 
         private ConcurrentDictionary<int, double> concurdicdata = new ConcurrentDictionary<int, double>();        
@@ -137,6 +138,7 @@ namespace SPX_Weight
         private bool isthreadSendSerialIdle = false;
 
         private byte[] receivedbuffer;
+        private byte[] receivedbuffer2nd;
         public MainWindow()
         {
             InitializeComponent();
@@ -251,21 +253,31 @@ namespace SPX_Weight
 
                 int com = Convert.ToInt32(SerialComport);
                 bool rt = serialData[i].OpenComm(com + i, 9600, 8, System.IO.Ports.StopBits.One, System.IO.Ports.Parity.None, System.IO.Ports.Handshake.XOnXOff);
+                Thread.Sleep(1000);
                 if(false == rt)
                 {
                     if(i == 0 ) label_Conncet.Background = new SolidColorBrush(Colors.IndianRed);
                     else if (i == 1) label_Conncet2.Background = new SolidColorBrush(Colors.IndianRed);
                 }
-                LogManager.getInstance().writeLog(string.Format("serial connect " + rt + "PORT" + scaleocnt));
-                serialData[i].DataReceivedHandler += DataReceivedHandler;
-                serialData[i].DisconnectedHandler += DisconnectedHandler;                
-            }            
+                LogManager.getInstance().writeLog(string.Format("serial connect " + rt + " PORT " + (com + i)));
+            }
+
+            serialData[0].DataReceivedHandler += DataReceivedHandler;
+            serialData[0].DisconnectedHandler += DisconnectedHandler;
+
+            if(2 == twoway)
+            {
+                serialData[1].DataReceivedHandler += DataReceivedHandler2ndPort;
+                serialData[1].DisconnectedHandler += DisconnectedHandler;
+            }
+
             //dof 는 30개 까지 
             SetDofComboBox();
             //받는 시리얼 버퍼 
             //시리얼은 저울 수랑 약간 다름 그래서 inputdatacount를 사용
             int setbufferlength = 2 + 2 + (4 * inputDataCount) + 1;
             receivedbuffer = new byte[setbufferlength];
+            receivedbuffer2nd = new byte[setbufferlength];
 
             //스펙 입력 일반일때는 readonly로 진행
             Text_WeightMin.IsReadOnly = true;
@@ -373,10 +385,12 @@ namespace SPX_Weight
         }
 
         private object lockObject = new object();
+        private object lockObject2 = new object();
 
         int currentbuff = 0;
         int checkinputfirst = 0;
         int getalldataTwoWay = 0;
+      
         /// <summary>
         /// serial receive event handler
         /// </summary>
@@ -404,8 +418,7 @@ namespace SPX_Weight
                 }
 
                 string hex = BitConverter.ToString(receiveData);
-                //double[] realDatacopy;
-             
+                  
                 LogManager.getInstance().writeLog(hex, DebuglogQuery, Debuglog);
                 if (CheckCas == true)
                 {
@@ -426,7 +439,7 @@ namespace SPX_Weight
                     if ((receiveData.Length == setlength) || (receiveData.Length == (setlength + 1)))
                     {
                         int bbtt = receiveData[0];
-                      //  LogManager.getInstance().writeLog("입력 1");
+                        //LogManager.getInstance().writeLog("입력 1");
                         LogManager.getInstance().writeLog(string.Format("0번 바이트 " + bbtt.ToString()), DebuglogQuery, Debuglog);
 
                         if (receiveData[0] == 48)
@@ -434,8 +447,7 @@ namespace SPX_Weight
                           //  LogManager.getInstance().writeLog("입력 2");
                             currentbuff = receiveData.Length;
                             Array.Copy(receiveData, 0, receivedbuffer, 0, receiveData.Length);
-                            
-                            checkinputfirst = 1;                         
+                                            
                           //  LogManager.getInstance().writeLog("입력 바이트_ " + hex);
                           LogManager.getInstance().writeLog("입력 길이_ " + currentbuff, DebuglogQuery, Debuglog);
                         }                        
@@ -447,8 +459,6 @@ namespace SPX_Weight
                         return;
                     }                  
                     int minus = 1;
-                    //if (receivedbuffer.Length == setlength) minus = 1;
-                    //else minus = 2;
 
                     if (receivedbuffer[receivedbuffer.Length - minus - 1] == 13)
                     {
@@ -483,8 +493,8 @@ namespace SPX_Weight
                                         int datamiddle = s + (i * 4) + 1;
                                         int datalow = s + (i * 4) + 2;
                                         int config = s + (i * 4) + 3;
-                                        LogManager.getInstance().writeLog(string.Format("datahigh" + datahigh + "middle" + datamiddle + "datalow" + datalow + "config" + config), DebuglogQuery, Debuglog);
-                                        LogManager.getInstance().writeLog(string.Format("2 " + receivedbuffer[config]), DebuglogQuery, Debuglog);
+                                       // LogManager.getInstance().writeLog(string.Format("datahigh" + datahigh + "middle" + datamiddle + "datalow" + datalow + "config" + config), DebuglogQuery, Debuglog);
+                                       // LogManager.getInstance().writeLog(string.Format("2 " + receivedbuffer[config]), DebuglogQuery, Debuglog);
                                         var ba1 = new BitArray(receivedbuffer[config]);
                                         string sbit = Convert.ToString(receivedbuffer[config], 2).PadLeft(8, '0');
 
@@ -493,8 +503,8 @@ namespace SPX_Weight
                                         int boolInt1 = Convert.ToInt32(sbit.Substring(1, 1));
                                         int boolInt2 = Convert.ToInt32(sbit.Substring(2, 1));
 
-                                        LogManager.getInstance().writeLog(string.Format("안정판정" + Convert.ToInt32(sbit.Substring(5, 1))), DebuglogQuery, Debuglog);
-                                        LogManager.getInstance().writeLog(string.Format("boolInt0 " + boolInt0 + boolInt1 + boolInt2), DebuglogQuery, Debuglog);
+                                      //  LogManager.getInstance().writeLog(string.Format("안정판정" + Convert.ToInt32(sbit.Substring(5, 1))), DebuglogQuery, Debuglog);
+                                      //  LogManager.getInstance().writeLog(string.Format("boolInt0 " + boolInt0 + boolInt1 + boolInt2), DebuglogQuery, Debuglog);
                                         int q = boolInt0 + (boolInt1 * 2) + (boolInt2 * 4);
 
                                         double rehi = receivedbuffer[datahigh];
@@ -507,11 +517,12 @@ namespace SPX_Weight
                                         realData[i] = realData[i] * rtConfigData(q); 
 
                                         BitArray sum;
-                                        BitArray dcc = new BitArray(receivedbuffer[ReceiveBufflength - 4]);
-
+                                        BitArray bcc;
+                                        if (receivedbuffer.Length == ReceiveBufflength)            bcc = new BitArray(receivedbuffer[ReceiveBufflength - 3]);
+                                        else if (receivedbuffer.Length == (ReceiveBufflength + 1)) bcc = new BitArray(receivedbuffer[ReceiveBufflength - 4]);
                                     }
                                     Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
-                                    LogManager.getInstance().writeLog(string.Format("리시브 함수 콜 data hex " + hex), DebuglogQuery, Debuglog);
+                                   // LogManager.getInstance().writeLog(string.Format("리시브 함수 콜 data hex " + hex), DebuglogQuery, Debuglog);
                                     for (int j = 0; j < realData.Length; j++)
                                     {                             
                                         dicSerialData.Add(j, realData[j]);
@@ -523,13 +534,290 @@ namespace SPX_Weight
                                     }
                                    LogManager.getInstance().writeLog("입력 4_2", DebuglogQuery, Debuglog);
                                 }
+                                //절반 이상 아니면 무시 리턴                                
+                                if (okvalue < (int)(Set_Scale / 2))
+                                {
+                                    LogManager.getInstance().writeLog("유효 데이터 수량 미달로 초기화", DebuglogQuery, Debuglog);
+                                    Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                                    banbookDatainsert = 0;
+                                    onecyclepass = false;
+                                    return;
+                                }                                
+                                else
+                                {
+                                    if (banbookDatainsert == 0 && onecyclepass == true)
+                                    {
+                                        LogManager.getInstance().writeLog("입력 5", DebuglogQuery, Debuglog);
+                                        //한번은 넘기고 늦게들어오는게 생깁니다.                               
+                                        banbookDatainsert += 1;
+                                    }
+                                    else
+                                    {
+                                        //한번은 넘기고 onecyclepass를 켜준다음에.    
+                                        LogManager.getInstance().writeLog("입력 4_3", DebuglogQuery, Debuglog);                              
+                                        onecyclepass = true;
+                                        return;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                banbookDatainsert = 0;
+                                onecyclepass = false;
+                                Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                            }
+                        }
+                        catch
+                        {
+                            banbookDatainsert = 0;
+                            onecyclepass = false;
+                            Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                        }                        
+                    }
+                    else
+                    {
+                        banbookDatainsert = 0;
+                        onecyclepass = false;
+                        Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                    }
+                }
+                //211126 카스 관련해서 카스는 딱 맞으면 한번만에 들어가도록 수정
+                if ((dicSerialData.Count == inputDataCount && banbookDatainsert == 1) ||
+                    (dicSerialData.Count == inputDataCount && CheckCas == true))
+                {
+                    LogManager.getInstance().writeLog("입력 6", DebuglogQuery, Debuglog);
+                    banbookDatainsert = 5;
+                  
+                    if (reverseArr == true)
+                    {
+                        LogManager.getInstance().writeLog(string.Format("11-1"), DebuglogQuery, Debuglog);
+                        dicSerialData = dicSerialData.OrderByDescending(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+                        // dicSerialData.Reverse();
+                    }
+                    //아래에서 getserialdata claer하는데 어쩌지?
+                    //serialDataDictoList(dicSerialData);
+                    //여기서 set2line 에 따라서 앞에 12개에 데이터 넣을지 뒤에 12개에 넣을지 변경해줘야 함
+                    if (2 == twoway)
+                    {
+                        SwapSerialData(dicSerialData, set2line);
+                    }
+                    else
+                    {
+                        getSerialData = new List<double>(dicSerialData.Values);
+                    }
+
+                    string arraydata = string.Join(",", getSerialData);
+                    LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 갯수 " + runScaleCount));
+                    LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 " + arraydata));
+
+                    getalldataTwoWay += 1;
+                    //여기서 라인 1 라인 2 들어온거 계산해서 두개 다 들어온 데이터 쌓일 경우에만 넣기
+                    //runscalecount 는 두개 이니까 *2로 해줘서 넣어야함
+                    ///220704 serial received 를 나눠서 정리하는 테스트 중
+                    /*if (twoway == 2 && getalldataTwoWay == 2)
+                    {
+                        int WayScale = runScaleCount * 2;
+                        // set2line 를 빼고 data가 풀로 샇이면 한번에 처리 하자
+                        UpdataSerialDataWightScale(WayScale, 0);
+                        LogManager.getInstance().writeLog(("2열 데이터 입력 TEXT Box updata" + arraydata));
+
+                    }
+                    else if (twoway == 1)
+                    {
+                        UpdataSerialDataWightScale(runScaleCount, 0);
+                    }
+                    else
+                    {
+                        LogManager.getInstance().writeLog(string.Format("한개 라인 입력 완료 후 리턴  " + getSerialData.Count().ToString()));
+                        return;
+                    }
+                    */
+                    ///220704 serial received 를 나눠서 정리하는 테스트 중
+
+                    UpdataSerialDataWightScale(runScaleCount, 0);
+
+                    /*
+                    if (twoway == 2 && getalldataTwoWay == 2)
+                    {
+                        int WayScale = runScaleCount * 2;
+                        // set2line 를 빼고 data가 풀로 샇이면 한번에 처리 하자
+                        UpdataSerialDataWightScale(WayScale, 0);
+                        LogManager.getInstance().writeLog(("2열 데이터 입력 TEXT Box updata" + arraydata));
+
+                    }
+                    else if(twoway == 1)
+                    {
+                        UpdataSerialDataWightScale(runScaleCount, 0);
+                    }
+                    else {
+                        LogManager.getInstance().writeLog(string.Format("한개 라인 입력 완료 후 리턴  " + getSerialData.Count().ToString()));
+                        return;
+                    }
+                    */
+
+                   // LogManager.getInstance().writeLog(string.Format("데이터 총량  " + getSerialData.Count().ToString()));
+                                           
+                    if (twoway == 2) set2line = 0;
+                    this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate 
+                    {
+                        UPdataSeiralDataToGridAndDB(set2line);
+                    }));
+                    //1번 포트 다 들어와서 끝났다!
+                    checkinputfirst = 1;
+                    LogManager.getInstance().writeLog(string.Format("END"), DebuglogQuery, Debuglog);
+                    dicSerialData.Clear();
+                    //여기서 시간을 좀 끌어줘야할 필요가 있음
+                    Thread.Sleep(200);                    
+                    getalldataTwoWay = 0;
+                }
+            }            
+        }
+
+        private void DataReceivedHandler2ndPort(byte[] receiveData, int portN)
+        {
+            lock (lockObject2)
+            {              
+                dicSerialData2nd.Clear();
+                Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
+                //일단 com1에서 다 들어오면 2 진행 할 수 있도록 하자
+                if (1 != checkinputfirst) return;
+                //2way 경우에는 ini에 등록된  port를 지금 들어온  portN과 비교하여  1번인지 2번인지 확인합니다. 
+                int set2line = 0;
+                int com = Convert.ToInt32(SerialComport);
+                if (twoway == 2)
+                {
+                    if (portN == com) set2line = 0;
+                    else set2line = 1;
+                }
+
+                if (receiveData.Length <= 20)
+                {
+                    LogManager.getInstance().writeLog("입력 zero");
+                    return;
+                }
+
+                string hex = BitConverter.ToString(receiveData);
+
+                LogManager.getInstance().writeLog(hex, DebuglogQuery, Debuglog);
+                if (CheckCas == true)
+                {
+                    string temp = Encoding.Default.GetString(receiveData, 10, 8);
+                    double value = Convert.ToDouble(temp);
+                    if (!dicSerialData2nd.ContainsKey(portN))
+                    {
+                        dicSerialData2nd.Add(portN, value * 1000);
+                    }
+                }
+                else
+                {
+
+                    int setlength = 2 + 2 + (4 * Set_Scale);
+                    LogManager.getInstance().writeLog(string.Format("receive lenght " + receiveData.Length), DebuglogQuery, Debuglog);
+
+                    //다이아퍼 미쳐가지고 8개로 들어옴
+                    if ((receiveData.Length == setlength) || (receiveData.Length == (setlength + 1)))
+                    {
+                        int bbtt = receiveData[0];
+                        //LogManager.getInstance().writeLog("입력 1");
+                        LogManager.getInstance().writeLog(string.Format("0번 바이트 " + bbtt.ToString()), DebuglogQuery, Debuglog);
+
+                        if (receiveData[0] == 48)
+                        {
+                            //  LogManager.getInstance().writeLog("입력 2");
+                            currentbuff = receiveData.Length;
+                            Array.Copy(receiveData, 0, receivedbuffer2nd, 0, receiveData.Length);
+                            //  LogManager.getInstance().writeLog("입력 바이트_ " + hex);
+                            LogManager.getInstance().writeLog("입력 길이_ " + currentbuff, DebuglogQuery, Debuglog);
+                        }
+                    }
+                    else
+                    {
+                        //banbookDatainsert = 0;
+                        //onecyclepass = false;
+                        return;
+                    }
+                    int minus = 1;
+
+                    if (receivedbuffer2nd[receivedbuffer2nd.Length - minus - 1] == 13)
+                    {
+                        try
+                        {
+                            if (receivedbuffer2nd[receivedbuffer2nd.Length - minus] == 10)
+                            {
+
+                                if (twoway == 2)
+                                {
+                                    LogManager.getInstance().writeLog("INPUT PORT " + portN.ToString());
+                                }
+                                else
+                                {
+                                    LogManager.getInstance().writeLog("입력 3", DebuglogQuery, Debuglog);
+                                }
+
+                                int ReceiveBufflength = 2 + 2 + (4 * inputDataCount);
+                                int weightDatalength = (inputDataCount);
+
+                                int okvalue = 0;
+
+                                if (receivedbuffer2nd.Length == ReceiveBufflength || receivedbuffer2nd.Length == (ReceiveBufflength + 1))
+                                {
+                                    LogManager.getInstance().writeLog("입력 4", DebuglogQuery, Debuglog);
+                                    currentbuff = 0;
+                                    double[] realData = new double[weightDatalength];
+                                    int s = 2;
+                                    for (int i = 0; i < weightDatalength; i++)
+                                    {
+                                        int datahigh = s + (i * 4);
+                                        int datamiddle = s + (i * 4) + 1;
+                                        int datalow = s + (i * 4) + 2;
+                                        int config = s + (i * 4) + 3;
+                                        // LogManager.getInstance().writeLog(string.Format("datahigh" + datahigh + "middle" + datamiddle + "datalow" + datalow + "config" + config), DebuglogQuery, Debuglog);
+                                        // LogManager.getInstance().writeLog(string.Format("2 " + receivedbuffer2nd[config]), DebuglogQuery, Debuglog);
+                                        var ba1 = new BitArray(receivedbuffer2nd[config]);
+                                        string sbit = Convert.ToString(receivedbuffer2nd[config], 2).PadLeft(8, '0');
+                                                                          
+                                        int boolInt0 = Convert.ToInt32(sbit.Substring(0, 1));
+                                        int boolInt1 = Convert.ToInt32(sbit.Substring(1, 1));
+                                        int boolInt2 = Convert.ToInt32(sbit.Substring(2, 1));
+
+                                        //  LogManager.getInstance().writeLog(string.Format("안정판정" + Convert.ToInt32(sbit.Substring(5, 1))), DebuglogQuery, Debuglog);
+                                        //  LogManager.getInstance().writeLog(string.Format("boolInt0 " + boolInt0 + boolInt1 + boolInt2), DebuglogQuery, Debuglog);
+                                        int q = boolInt0 + (boolInt1 * 2) + (boolInt2 * 4);
+
+                                        double rehi = receivedbuffer2nd[datahigh];
+                                        double remi = receivedbuffer2nd[datamiddle];
+                                        double relo = receivedbuffer2nd[datalow];
+
+                                        realData[i] = (((rehi - 20) * 10000)
+                                                     + ((remi - 20) * 100)
+                                                     + (relo - 20));
+                                        realData[i] = realData[i] * rtConfigData(q);
+
+                                        BitArray sum;
+                                        BitArray bcc;
+                                        if (receivedbuffer2nd.Length == ReceiveBufflength) bcc = new BitArray(receivedbuffer2nd[ReceiveBufflength - 3]);
+                                        else if (receivedbuffer2nd.Length == (ReceiveBufflength + 1)) bcc = new BitArray(receivedbuffer2nd[ReceiveBufflength - 4]);
+                                    }
+                                    Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
+                                    // LogManager.getInstance().writeLog(string.Format("리시브 함수 콜 data hex " + hex), DebuglogQuery, Debuglog);
+                                    for (int j = 0; j < realData.Length; j++)
+                                    {
+                                        dicSerialData2nd.Add(j, realData[j]);
+                                        //입력값 50이하면 무시하는 값으로
+                                        if (realData[j] >= 50)
+                                        {
+                                            okvalue = okvalue + 1;
+                                        }
+                                    }
+                                    LogManager.getInstance().writeLog("입력 4_2", DebuglogQuery, Debuglog);
+                                }
                                 //절반 이상 아니면 무시 리턴
                                 //1129 김재환 이거 1개 미만으로 진행 
                                 //if (okvalue < (Set_Scale / 3))
-                                if (okvalue < 1)
+                                if (okvalue <= (int)(Set_Scale / 2))
                                 {
-                                    LogManager.getInstance().writeLog("초기", DebuglogQuery, Debuglog);
-                                    Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                                    LogManager.getInstance().writeLog("유효 데이터 수량 미달로 초기화", DebuglogQuery, Debuglog);
+                                    Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                                     banbookDatainsert = 0;
                                     onecyclepass = false;
                                     return;
@@ -544,7 +832,8 @@ namespace SPX_Weight
                                     }
                                     else
                                     {
-                                        LogManager.getInstance().writeLog("입력 4_3", DebuglogQuery, Debuglog);                              
+                                        //한번은 넘기고 onecyclepass를 켜준다음에.    
+                                        LogManager.getInstance().writeLog("입력 4_3", DebuglogQuery, Debuglog);
                                         onecyclepass = true;
                                         return;
                                     }
@@ -554,79 +843,91 @@ namespace SPX_Weight
                             {
                                 banbookDatainsert = 0;
                                 onecyclepass = false;
-                                Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                                Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                             }
-
                         }
                         catch
                         {
                             banbookDatainsert = 0;
                             onecyclepass = false;
-                            Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                            Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                         }
-                        
                     }
                     else
                     {
                         banbookDatainsert = 0;
                         onecyclepass = false;
-                        Array.Clear(receivedbuffer, 0, receivedbuffer.Length);
+                        Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                     }
                 }
-
                 //211126 카스 관련해서 카스는 딱 맞으면 한번만에 들어가도록 수정
-                if ((dicSerialData.Count == inputDataCount && banbookDatainsert == 1) ||
-                    (dicSerialData.Count == inputDataCount && CheckCas == true))
-
+                if ((dicSerialData2nd.Count == inputDataCount && banbookDatainsert == 1) ||
+                    (dicSerialData2nd.Count == inputDataCount && CheckCas == true))
                 {
                     LogManager.getInstance().writeLog("입력 6", DebuglogQuery, Debuglog);
                     banbookDatainsert = 5;
-                  
+
                     if (reverseArr == true)
                     {
                         LogManager.getInstance().writeLog(string.Format("11-1"), DebuglogQuery, Debuglog);
-                        dicSerialData = dicSerialData.OrderByDescending(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
-                        // dicSerialData.Reverse();
+                        dicSerialData2nd = dicSerialData2nd.OrderByDescending(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+                        // dicSerialData2nd.Reverse();
                     }
-
-                    serialDataDictoList(dicSerialData);
-                    //여기서 쓰는 곳 호출      
-
-                    getSerialData = new List<double>(dicSerialData.Values);
+                    //아래에서 getserialdata claer하는데 어쩌지?
+                    //serialDataDictoList(dicSerialData2nd);
+                    //여기서 set2line 에 따라서 앞에 12개에 데이터 넣을지 뒤에 12개에 넣을지 변경해줘야 함
+                    //if (2 == twoway)
+                    //{
+                    //    SwapSerialData(dicSerialData2nd, set2line);
+                    //}
+                    //else
+                    //{
+                    //    getSerialData = new List<double>(dicSerialData2nd.Values);
+                    //}
+                    getSerialData = new List<double>(dicSerialData2nd.Values);
                     string arraydata = string.Join(",", getSerialData);
-                    LogManager.getInstance().writeLog(string.Format((set2line + 1) + "라인" + "데이터 갯수 " + runScaleCount));
-                    LogManager.getInstance().writeLog(string.Format((set2line + 1) + "라인" + "데이터 " + arraydata));
-                    LogManager.getInstance().writeLog(string.Format("데이터 총량  " + getSerialData.Count().ToString()));
+                    LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 갯수 " + runScaleCount));
+                    LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 " + arraydata));
+
                     getalldataTwoWay += 1;
                     //여기서 라인 1 라인 2 들어온거 계산해서 두개 다 들어온 데이터 쌓일 경우에만 넣기
                     //runscalecount 는 두개 이니까 *2로 해줘서 넣어야함
-                    if (twoway == 2 && getalldataTwoWay == 2)
-                    {
-                        int WayScale = runScaleCount * 2;
-                        // set2line 를 빼고 data가 풀로 샇이면 한번에 처리 하자
-                        UpdataSerialDataWightScale(WayScale, 0);                     
-                    }
-                    else if(twoway == 1)
-                    {
-                        UpdataSerialDataWightScale(runScaleCount, set2line);
-                    }
-                    else {
-                        LogManager.getInstance().writeLog(string.Format("1라인 입력 완료 후 리턴  " + getSerialData.Count().ToString()));
-                        return;
-                    }
-                    //호출당하는데다 업로드하면안되고 20210416 jaehwan
+                    UpdataSerialDataWightScale(Set_Scale, 1);
+
+                    //if (twoway == 2 && getalldataTwoWay == 2)
+                    //{
+                    //    int WayScale = runScaleCount * 2;
+                    //    // set2line 를 빼고 data가 풀로 샇이면 한번에 처리 하자
+                    //    UpdataSerialDataWightScale(WayScale, 1);
+                    //    LogManager.getInstance().writeLog(("2열 데이터 입력 TEXT Box updata" + arraydata));
+
+                    //}
+                    //else if (twoway == 1)
+                    //{
+                    //    UpdataSerialDataWightScale(runScaleCount, 0);
+                    //}
+                    //else
+                    //{
+                    //    LogManager.getInstance().writeLog(string.Format("한개 라인 입력 완료 후 리턴  " + getSerialData.Count().ToString()));
+                    //    return;
+                    //}
+
+                    LogManager.getInstance().writeLog(string.Format("데이터 총량  " + getSerialData.Count().ToString()));
+
+                    //호출당하는데다 업로드하면안되고 20210416 jaehwan                   
                     if (twoway == 2) set2line = 0;
-                    this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate 
+                    this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate
                     {
                         UPdataSeiralDataToGridAndDB(set2line);
                     }));
-                    LogManager.getInstance().writeLog(string.Format("14"), DebuglogQuery, Debuglog);
-                    dicSerialData.Clear();
+                    LogManager.getInstance().writeLog(string.Format("2nd END"), DebuglogQuery, Debuglog);
+                    dicSerialData2nd.Clear();
                     //여기서 시간을 좀 끌어줘야할 필요가 있음
+                    Thread.Sleep(300);
                     checkinputfirst = 0;
                     getalldataTwoWay = 0;
                 }
-            }            
+            }
         }
 
         private double rtConfigData(int bi)
@@ -698,161 +999,174 @@ namespace SPX_Weight
             label_Conncet2.Background = new SolidColorBrush(Colors.IndianRed);
         }
 
+
+        private object textobj = new object();
         /// <summary>
         /// 시리얼 데이터로 화면 업데이트 
         /// </summary>
         /// <param name="ScaleCount"></param>
         public void UpdataSerialDataWightScale(int ScaleCount, int on2 = 0)
         {
-            try
+            lock (textobj)
             {
-                int reveropp = 0;
-                //if (reverseArr == true) reveropp = inputDataCount - ScaleCount;
-                //SignalConut 수정
-                if (reverseArr == true) reveropp = 0;
-                if (getSerialData.Count == ScaleCount)
+                try
                 {
-                    for (int i = 0; i < ScaleCount; i++)
+                    int reveropp = 0;
+                    //if (reverseArr == true) reveropp = inputDataCount - ScaleCount;
+                    //SignalConut 수정
+                    if (reverseArr == true) reveropp = 0;
+                    if (getSerialData.Count == ScaleCount)
                     {
-                        int k = i;
-                        if (twoway == 2) k = i + (ScaleCount * on2);
+                        for (int i = 0; i < ScaleCount; i++)
+                        {
+                            int k = i;
+                            if (twoway == 2) k = i + (ScaleCount * on2);
 
-                        Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
-                        {                       
-                            listTextbox[k].Text = getSerialData[i + reveropp].ToString("N1");
-                        }));
-                    }                   
+                            Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                            {
+                                listTextbox[k].Text = getSerialData[i + reveropp].ToString("N1");
+                            }));
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogManager.getInstance().writeLog(ex.ToString());
                 }
             }
-            catch(Exception ex)
-            {
-                LogManager.getInstance().writeLog(ex.ToString());
-            }
-            
         }
 
+        private object gridobj = new object();
         /// <summary>
         /// 데이터 그리드 갱신
         /// </summary>
         private void UPdataSeiralDataToGridAndDB(int way = 0)
         {
-            try
+            lock (gridobj)
             {
-                LocalDataManager dbdata = LocalDataManager.getInstance();
-                // 두줄하는데 데이터가 다 없으면 그냥 리턴해보까
-                if (twoway == 2 && getalldataTwoWay != 2)
+                try
                 {
-                    if (way == 0)
+                    LocalDataManager dbdata = LocalDataManager.getInstance();
+                    // 두줄하는데 데이터가 다 없으면 그냥 리턴해보까
+                    // 두줄하니까 분별할 수있는 뭔가를 만들어야 함                 
+                    if (twoway == 2 && getalldataTwoWay != 2)
                     {
-                        getSerialData.Clear();
+                        //if (way == 0)
+                        //{
+                        //    getSerialData.Clear();
+                        //    return;
+                        //}
+                    }
+                    //사이드가 나눠져잇는지 아닌지 여기서 확인하자 
+                    var tempside = SingleSide.Distinct().ToList();
+                    if (NextStepSide.Count > tempside.Count)
+                    {
+                        sideDivisionexption = NextStepSide.Count / tempside.Count;
+                    }
+                    ///2개의 저울 데이터를 한개로 뭉쳐서 쓰는 경우   && getSerialData.Count >= 4 를 넣었으나 8개로들어오는 제품 발생 
+                    if (true == checkBox_2Scale1Result.IsChecked)
+                    {
+                    }
+                    ///
+                    //var copyseriallist = getSerialData.ConvertAll(s => s);
+                    var copyseriallist = SetTwoWayCountforSerialDatalist(getSerialData, way);
+                    Specpanjung.Clear();
+                    int reveropp = 0;
+                    //if (reverseArr == true) reveropp = Math.Abs(inputDataCount - Set_Scale);
+                    //signalCount 수정됨
+                    if (reverseArr == true) reveropp = Math.Abs(0);
+                    //두줄설비
+
+                    for (int i = 0 + reveropp; i < copyseriallist.Count; i++)
+                    {
+                        copyseriallist[i] = copyseriallist[i] - Convert.ToDouble(text_jikwan.Text);
+                        getSerialData[i] = getSerialData[i] - Convert.ToDouble(text_jikwan.Text);
+                        //측정무게가 80g 미만이면 0처리 하도록하자
+                        if (80 > copyseriallist[i]) copyseriallist[i] = 0.00;
+                        Specpanjung.Add(WeightPanjung(copyseriallist[i]));
+                    }
+
+                    if (NextStepSide.Count <= sideCount)
+                    {
+                        startPosCount += 1;
+                        sideCount = 0;
+                    }
+                    else
+                    { }
+
+                    if ("" == ReturnNextPos(startPosCount) && true != checkBox_TestLot.IsChecked)
+                    {
+                        MessageBox.Show("POS OUT OF RANGE");
                         return;
                     }
-                }
-                //사이드가 나눠져잇는지 아닌지 여기서 확인하자 
-                var tempside = SingleSide.Distinct().ToList();
-                if(NextStepSide.Count >  tempside.Count)
-                {
-                    sideDivisionexption = NextStepSide.Count / tempside.Count;                 
-                }
-                else
-                {   }
-                ///2개의 저울 데이터를 한개로 뭉쳐서 쓰는 경우   && getSerialData.Count >= 4 를 넣었으나 8개로들어오는 제품 발생 
-                if (true == checkBox_2Scale1Result.IsChecked)
-                {
 
-                }
-                ///
-                var copyseriallist = getSerialData.ConvertAll(s => s);
-                Specpanjung.Clear();
-                int reveropp = 0;
-                //if (reverseArr == true) reveropp = Math.Abs(inputDataCount - Set_Scale);
-                //signalCount 수정됨
-                if (reverseArr == true) reveropp = Math.Abs(0);
+                    int checksidecount = NextStepSide.Count / comboBox_SIDE.Items.Count;
+                    int setSidecount = 0;
 
-                for (int i = 0 + reveropp; i < copyseriallist.Count; i++)
-                {
-
-                    copyseriallist[i] = copyseriallist[i] - Convert.ToDouble(text_jikwan.Text);
-                    getSerialData[i] = getSerialData[i] - Convert.ToDouble(text_jikwan.Text);
-                    //측정무게가 80g 미만이면 0처리 하도록하자
-                    if (100 > copyseriallist[i]) copyseriallist[i] = 0.00;                    
-                    Specpanjung.Add(WeightPanjung(copyseriallist[i]));
-                }
-
-                if (NextStepSide.Count <= sideCount)
-                {
-                    startPosCount += 1;
-                    sideCount = 0;
-                }
-                else
-                {   }
-
-                if("" == ReturnNextPos(startPosCount) && true != checkBox_TestLot.IsChecked)
-                {
-                    MessageBox.Show("POS OUT OF RANGE");
-                    return;
-                }
-                
-                int checksidecount = NextStepSide.Count / comboBox_SIDE.Items.Count;
-                int setSidecount = 0;
-                
-                if (true == SideChangeLogic())
-                {
-                    checksidecount = sideDivisionexption;
-                    int setcomboindex = comboBox_SIDE.SelectedIndex;
-                    //setSidecount = (checksidecount * setcomboindex) + sideCount;
-                    setSidecount = (setcomboindex) + sideCount;
-
-                }
-                else setSidecount = sideCount;
-                List<double> ReBuildResultArr = new List<double>();
-                if(reverseArr == true)
-                {
-                    if(Set_Scale != inputDataCount)
+                    if (true == SideChangeLogic())
                     {
-                        int ccc = Math.Abs(inputDataCount - Set_Scale);
-                        for(int i  = 0 + ccc; i < inputDataCount; i++)
+                        checksidecount = sideDivisionexption;
+                        int setcomboindex = comboBox_SIDE.SelectedIndex;
+                        //setSidecount = (checksidecount * setcomboindex) + sideCount;
+                        setSidecount = (setcomboindex) + sideCount;
+                    }
+                    else setSidecount = sideCount;
+                    List<double> ReBuildResultArr = new List<double>();
+                    if (reverseArr == true)
+                    {
+                        if (Set_Scale != inputDataCount)
                         {
-                            ReBuildResultArr.Add(getSerialData[i]);
+                            int ccc = Math.Abs(inputDataCount - Set_Scale);
+                            for (int i = 0 + ccc; i < inputDataCount; i++)
+                            {
+                                ReBuildResultArr.Add(getSerialData[i]);
+                            }
+                            this.LoTTable = GetTable(SetvalueToGrid(ReturnNextPos(startPosCount), NextStepSide[setSidecount], StartEndCount[setSidecount], NextStartEnd[setSidecount], ReBuildResultArr));
+                            this.dataGrid.ItemsSource = this.LoTTable.DefaultView;
+                            this.dataGrid.ScrollIntoView(dataGrid.Items.GetItemAt(dataGrid.Items.Count - 1));
                         }
-
-                        this.LoTTable = GetTable(SetvalueToGrid(ReturnNextPos(startPosCount), NextStepSide[setSidecount], StartEndCount[setSidecount], NextStartEnd[setSidecount], ReBuildResultArr));
+                    }
+                    else
+                    {
+                        if (true == checkBox_2Scale1Result.IsChecked) this.LoTTable = GetTable(SetvalueToGrid(ReturnNextPos(startPosCount), NextStepSide[setSidecount], StartEndCount[setSidecount], NextStartEnd[setSidecount], copyseriallist));
+                        else this.LoTTable = GetTable(SetvalueToGrid(ReturnNextPos(startPosCount), NextStepSide[setSidecount], StartEndCount[setSidecount], NextStartEnd[setSidecount], copyseriallist));
                         this.dataGrid.ItemsSource = this.LoTTable.DefaultView;
                         this.dataGrid.ScrollIntoView(dataGrid.Items.GetItemAt(dataGrid.Items.Count - 1));
                     }
-                }
-                else
-                {                    
-                    if (true == checkBox_2Scale1Result.IsChecked) this.LoTTable = GetTable(SetvalueToGrid(ReturnNextPos(startPosCount), NextStepSide[setSidecount], StartEndCount[setSidecount], NextStartEnd[setSidecount], copyseriallist));
-                    else this.LoTTable = GetTable(SetvalueToGrid(ReturnNextPos(startPosCount), NextStepSide[setSidecount], StartEndCount[setSidecount], NextStartEnd[setSidecount], getSerialData));
-                    this.dataGrid.ItemsSource = this.LoTTable.DefaultView;
-                    this.dataGrid.ScrollIntoView(dataGrid.Items.GetItemAt(dataGrid.Items.Count - 1));
-                }
 
-                if (!SideChangeLogic()) sideCount += 1;
-                else
-                {
-                    if (sideCount < checksidecount - 1)
+                    if (!SideChangeLogic()) sideCount += 1;
+                    else
                     {
-                        sideCount += 1;
+                        if (sideCount < checksidecount - 1)
+                        {
+                            sideCount += 1;
+                        }
+                        else if (sideCount == checksidecount - 1)
+                        {
+                            sideCount = 0;
+                            startPosCount += 1;
+                        }
                     }
-                    else if (sideCount == checksidecount - 1)
+                    //들어온 데이터 가지고 파싱해서
+                    //판정(위에 LOT 데이터의 SPEC 가지고 판정을 함) 한 뒤에 그리드에 뿌려주고
+                    //ENd 신호가 따로 있는가?
+                    if (2 != twoway)
                     {
-                        sideCount = 0;
-                        startPosCount += 1;
+                        getSerialData.Clear();
                     }
+                    else if (2 == twoway && 1 == way)
+                    {
+                        getSerialData.Clear();
+                    }
+                    //SIDE 갯수보다 많아지면 POS가 한개 올라가야함
+                    // QMS에 데이터 올리고
                 }
-                //들어온 데이터 가지고 파싱해서
-                //판정(위에 LOT 데이터의 SPEC 가지고 판정을 함) 한 뒤에 그리드에 뿌려주고
-                //ENd 신호가 따로 있는가?
-                getSerialData.Clear();
-                //SIDE 갯수보다 많아지면 POS가 한개 올라가야함
-                // QMS에 데이터 올리고
+                catch (Exception ex)
+                {
+                    LogManager.getInstance().writeLog(ex.ToString());
+                }
             }
-            catch (Exception ex)
-            {
-                LogManager.getInstance().writeLog(ex.ToString());
-            }
+          
         }
 
 
@@ -864,7 +1178,6 @@ namespace SPX_Weight
                 try
                 {
                     _backgroundWorker = Thread.CurrentThread;
-
                     int roof = 1;
                     if (CheckCas == false && twoway == 2) roof = 2;
                     
@@ -878,7 +1191,8 @@ namespace SPX_Weight
                 }
                 catch(ThreadAbortException ex)
                 {
-                    LogManager.getInstance().writeLog(ex.ToString());
+                    var currentmethod = new StackTrace().GetFrame(1).GetMethod();
+                    LogManager.getInstance().writeLog(currentmethod.Name + "__" + ex.ToString());
                 }
             }
         }
@@ -913,7 +1227,6 @@ namespace SPX_Weight
                 {
                     LogManager.getInstance().writeLog(ex.ToString());
                 }
-
             }
         }
 
@@ -1073,6 +1386,21 @@ namespace SPX_Weight
             QMSDataManager qmsdbdata = QMSDataManager.getInstance();
         }
 
+        private void button_DEVELOP_TEST_Click(object sender, RoutedEventArgs e)
+        {
+            Random rand = new Random();
+            int setscalecountInthisTest = runScaleCount;
+            for (int i = 0; i < setscalecountInthisTest; i++)
+            {
+                getSerialData.Add(500 + rand.Next(0, 9) + rand.NextDouble());
+            }
+            if (true == checkBox_Reverse.IsChecked) getSerialData.Reverse();
+            if (true == checkBox_SideCheck.IsChecked) ApplySelectSide();
+
+            UpdataSerialDataWightScale(setscalecountInthisTest, 1);
+            UPdataSeiralDataToGridAndDB(1);
+        }
+
         int settest_k = 0;
         /// <summary>
         /// 테스트 버튼
@@ -1083,16 +1411,20 @@ namespace SPX_Weight
         {    
             Random rand = new Random();
             int setscalecountInthisTest = runScaleCount;
-            if (true == checkBox_2Scale1Result.IsChecked) setscalecountInthisTest = runScaleCount * 2;
+            if (true == checkBox_2Scale1Result.IsChecked ) setscalecountInthisTest = runScaleCount;           
+           
+
             for (int i = 0; i < setscalecountInthisTest; i++)
             {
                 getSerialData.Add(500 + rand.Next(0, 9) + rand.NextDouble());
             }
             if (true == checkBox_Reverse.IsChecked) getSerialData.Reverse();
             if (true == checkBox_SideCheck.IsChecked) ApplySelectSide();
-            if (2 == twoway) UpdataSerialDataWightScale(runScaleCount, 0);
-            else UpdataSerialDataWightScale(setscalecountInthisTest);
+
+            UpdataSerialDataWightScale(setscalecountInthisTest);
             UPdataSeiralDataToGridAndDB(1);
+           
+           
             //220617 
             if (settest_k >= 1) settest_k = 0;
             else settest_k = 1;
@@ -1254,7 +1586,6 @@ namespace SPX_Weight
             LocalDataManager localdbdata = LocalDataManager.getInstance();
 
             DataSet dataset = qmsdbdata.GetUserID(plantid.ToString());
-
             localdbdata.InsertUserID(dataset);
         }
 
@@ -1271,8 +1602,7 @@ namespace SPX_Weight
             catch(Exception ex)
             {
                 ex.ToString();
-            }
-            
+            }            
             LastImportDate = CurrentProductDate;
             //  SetImportQmsTime();
         }
@@ -1299,7 +1629,6 @@ namespace SPX_Weight
                         strLotAdd.Add(row[0].ToString());                      
                     }
                     strLotAdd = strLotAdd.Distinct().ToList();
-
                 }
             }
         }
@@ -1627,7 +1956,7 @@ namespace SPX_Weight
                     SerialSpeed = Convert.ToInt32(GetIniValue(iniFileFullPath, "RS232C SETTING", "Speed"));
                     plantid = Convert.ToInt32(GetIniValue(iniFileFullPath, "PLANT_INFO", "PlantID"));
 
-                    for(int i = 0; i < 14; i++)
+                    for(int i = 0; i < 16; i++)
                     {
                         string Lineset = string.Format("Line{0}", i + 1);                        
                         glineidSet.Add(GetIniValue(iniFileFullPath, "PLANT_INFO", Lineset));
@@ -1879,8 +2208,7 @@ namespace SPX_Weight
         {
             //QMS 연결 안되어있어도 로컬 디비 가지고 spec 을 올려가지고 옵시다. 
             if (true == bQmsdb_Connect)
-            {              
-
+            {      
                 LogManager.getInstance().writeLog("QMS DB Load");
                 Set_ProductPlan();
                 LogManager.getInstance().writeLog("set plan");
@@ -2084,7 +2412,8 @@ namespace SPX_Weight
         private void dataGrid_LoadingRow(object sender, DataGridRowEventArgs e)
         {
             FrameworkElement el;
-            DataRowView item = this.dataGrid.Items[e.Row.GetIndex()] as DataRowView;
+            int indexno = e.Row.GetIndex();
+            DataRowView item = this.dataGrid.Items[indexno] as DataRowView;
             var GridrowStyle = new Style { TargetType = typeof(DataGridRow) };
             SolidColorBrush brush = new SolidColorBrush(Colors.Black);
 
@@ -2408,7 +2737,7 @@ namespace SPX_Weight
         }
 
         /// <summary>
-        /// LOT 아이디 로컬에서 가지고 오기 
+        /// 로트 아이디 로컬에서 가지고 오기 
         /// </summary>
         public void SetLotId_GetTextBox(string lotid)
         {
@@ -2484,9 +2813,80 @@ namespace SPX_Weight
             else
             {
                 myFileVersionInfo = FileVersionInfo.GetVersionInfo("C:\\Program Files\\HyosungITX\\ITX_WEIGHT\\SPX_WEIGHT.EXE");
-            }
-            
+            }            
             string temp2 = myFileVersionInfo.FileVersion;
+        }
+        /// <summary>
+        /// 2줄 서비 관련해서 twoway 받아서 시리얼 앞에거만 자르고 뒤에거 남기고 하는것들에 대한 플래그
+        /// </summary>
+        /// <returns></returns>
+        private dynamic SetTwoWayCountforSerialDatalist(List<double> serialdata, int loopcount)
+        {
+            var rt = new List<double>();
+            int par = getSerialData.Count / 2;
+            try
+            {
+                rt = getSerialData.ConvertAll(s => s);
+                /*
+                if (2 != twoway)
+                {
+                    rt = getSerialData.ConvertAll(s => s);
+                }
+                else
+                {
+                    rt = getSerialData.GetRange((par * loopcount), par);
+                }
+                */
+                return rt;
+            }
+            catch (Exception e)
+            {
+                var t = e.ToString();
+            }
+            return rt;
+        }
+
+        private object objswap = new object();
+        /// <summary>
+        /// 들어온 데이터가 앞에들어갈 데이터인지 뒤에 들어갈 데이터 인지 봐서 스왑함       
+        /// </summary>
+        /// <param name="serialdata"></param>
+        /// <param name="e"></param>
+        private void SwapSerialData(Dictionary<int, double> serialdata, int check2ndLineData)
+        {
+            return;
+            lock (objswap)
+            {
+                List<double> rt = new List<double>(serialdata.Values);
+                if (getSerialData.Count == 0)
+                {
+                    getSerialData = new List<double>(dicSerialData.Values);
+                }
+                else if (getSerialData.Count != 0)
+                {
+                    if (0 == check2ndLineData)
+                    {
+                        //1번라인 데이터일 경우
+                        rt.Reverse();
+                        foreach (var element in rt)
+                        {
+                            getSerialData.Insert(0, element);
+                        }
+                    }
+                    else if (1 == check2ndLineData)
+                    {
+                        //2번라인 데이터일 경우 1번이 있으면 뒤에넣고, 기존데이터가 있으면 지우고 넣기 
+                        if (getSerialData.Count != 0)
+                        {
+                            getSerialData.AddRange(rt);
+                        }
+                        else if (getSerialData.Count == 0)
+                        {
+                            getSerialData.AddRange(rt);
+                        }
+                    }
+                }
+            }
         }
 
         private void label_Conncet_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -2600,24 +3000,23 @@ namespace SPX_Weight
         private void Text_WeightMin_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             Regex regex = new Regex("[^0-9.]+");
-
             e.Handled = regex.IsMatch(e.Text);
         }
 
         private void Text_WeightMax_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             Regex regex = new Regex("[^0-9.]+");
-
             e.Handled = regex.IsMatch(e.Text);
         }
+
+
     }
 
     public class NameToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            double input = (double)value;
-
+           double input = (double)value;
            if(502 > input)
            {
                 return Brushes.LightGreen;
@@ -2626,15 +3025,6 @@ namespace SPX_Weight
            {
                 return DependencyProperty.UnsetValue;
            }
-
-
-            //switch (input)
-            //{
-            //    case "John":
-            //        return Brushes.LightGreen;
-            //    default:
-            //        return DependencyProperty.UnsetValue;
-            //}
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
