@@ -75,7 +75,8 @@ namespace SPX_Weight
         public void Export_Excel(System.Data.DataTable table, int scale, int runcount, MakeExcelCommonData common, List<string> side, List<string> pos, int endcount, string CurrentProductDate)
         {
             string filepath = GetExcelformatFile(runcount, common.slot, common.sline, common.sDof, CurrentProductDate, common.lotseq);
-
+            common.NextStepSide = side;
+       
             List<double> rowvlaue = new List<double>();
             List<double> rowvlaueEtc = new List<double>();
 

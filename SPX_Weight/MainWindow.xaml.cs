@@ -85,11 +85,15 @@ namespace SPX_Weight
         private int Debuglog = 0;
         private int DebuglogQuery = 0;
 
+        //사이드 나눠졌는지 아닌지 확인
+        private bool sideDiv = false;
         /// <summary>
         /// 0데이터없음 2데이터있음 5리셋대기
         /// </summary>
         private int banbookDatainsert;
+        private int banbookDatainsert2nd;
         private bool onecyclepass;
+        private bool onecyclepass2nd;
         private bool TowScale1Result;
         private bool ignorelast;
 
@@ -102,13 +106,16 @@ namespace SPX_Weight
 
         private string CurrentLoginUserID = "itxtest";
 
-        private bool bQmsdb_Connect = false;        
+        private bool bQmsdb_Connect = false;
+        private bool hasNoSpec = false;
 
         //결과데이터 쌓을 리스트임 이거 돌려서 QMS에 업데이트 예정
         private List<QMS_SpinWeightResult> WeightResultTemp = new List<QMS_SpinWeightResult>();
         private List<string> NextStepPos = new List<string>();
         private List<string> NextStepSide = new List<string>();
         private List<string> NextStartEnd = new List<string>();
+        //엑셀용
+        private List<string> NextStartEndForExcel = new List<string>();
         private List<int>  StartEndCount = new List<int>();
         private List<string> LineSetParam = new List<string>();
         private List<string> glineidSet = new List<string>();
@@ -163,6 +170,7 @@ namespace SPX_Weight
             reverseArr = false;            
             CheckCas = false;
             banbookDatainsert = 0;
+            banbookDatainsert2nd = 0;
             onecyclepass = false;
 
             //QMS DB 연결 체크하기
@@ -290,6 +298,7 @@ namespace SPX_Weight
                 LogManager.getInstance().writeLog("QMS DB Load of initialize");
                 Set_ProductPlan();
                 LogManager.getInstance().writeLog("set plan of initialize");
+                dbdata.Truncatetable("WEIGHT_SPEC");
                 Set_Weight_SPEC();
             }
         }
@@ -597,15 +606,16 @@ namespace SPX_Weight
                     //아래에서 getserialdata claer하는데 어쩌지?
                     //serialDataDictoList(dicSerialData);
                     //여기서 set2line 에 따라서 앞에 12개에 데이터 넣을지 뒤에 12개에 넣을지 변경해줘야 함
-                    if (2 == twoway)
-                    {
-                        SwapSerialData(dicSerialData, set2line);
-                    }
-                    else
-                    {
-                        getSerialData = new List<double>(dicSerialData.Values);
-                    }
-
+                    //if (2 == twoway)
+                    //{
+                    //    SwapSerialData(dicSerialData, set2line);
+                    //    getSerialData = new List<double>(dicSerialData.Values);
+                    //}
+                    //else
+                    //{
+                    //    getSerialData = new List<double>(dicSerialData.Values);
+                    //}
+                    getSerialData = new List<double>(dicSerialData.Values);
                     string arraydata = string.Join(",", getSerialData);
                     LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 갯수 " + runScaleCount));
                     LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 " + arraydata));
@@ -680,7 +690,12 @@ namespace SPX_Weight
                 dicSerialData2nd.Clear();
                 Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                 //일단 com1에서 다 들어오면 2 진행 할 수 있도록 하자
-                if (1 != checkinputfirst) return;
+                if (1 != checkinputfirst) 
+                {
+                    banbookDatainsert2nd = 0;
+                    onecyclepass2nd = false;
+                    return;
+                }
                 //2way 경우에는 ini에 등록된  port를 지금 들어온  portN과 비교하여  1번인지 2번인지 확인합니다. 
                 int set2line = 0;
                 int com = Convert.ToInt32(SerialComport);
@@ -818,54 +833,54 @@ namespace SPX_Weight
                                 {
                                     LogManager.getInstance().writeLog("유효 데이터 수량 미달로 초기화", DebuglogQuery, Debuglog);
                                     Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
-                                    banbookDatainsert = 0;
-                                    onecyclepass = false;
+                                    banbookDatainsert2nd = 0;
+                                    onecyclepass2nd = false;
                                     return;
                                 }
                                 else
                                 {
-                                    if (banbookDatainsert == 0 && onecyclepass == true)
+                                    if (banbookDatainsert2nd == 0 && onecyclepass2nd == true)
                                     {
                                         LogManager.getInstance().writeLog("입력 5", DebuglogQuery, Debuglog);
                                         //한번은 넘기고 늦게들어오는게 생깁니다.                               
-                                        banbookDatainsert += 1;
+                                        banbookDatainsert2nd += 1;
                                     }
                                     else
                                     {
                                         //한번은 넘기고 onecyclepass를 켜준다음에.    
                                         LogManager.getInstance().writeLog("입력 4_3", DebuglogQuery, Debuglog);
-                                        onecyclepass = true;
+                                        onecyclepass2nd = true;
                                         return;
                                     }
                                 }
                             }
                             else
                             {
-                                banbookDatainsert = 0;
-                                onecyclepass = false;
+                                banbookDatainsert2nd = 0;
+                                onecyclepass2nd = false;
                                 Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                             }
                         }
                         catch
                         {
-                            banbookDatainsert = 0;
-                            onecyclepass = false;
+                            banbookDatainsert2nd = 0;
+                            onecyclepass2nd = false;
                             Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                         }
                     }
                     else
                     {
-                        banbookDatainsert = 0;
-                        onecyclepass = false;
+                        banbookDatainsert2nd = 0;
+                        onecyclepass2nd = false;
                         Array.Clear(receivedbuffer2nd, 0, receivedbuffer2nd.Length);
                     }
                 }
                 //211126 카스 관련해서 카스는 딱 맞으면 한번만에 들어가도록 수정
-                if ((dicSerialData2nd.Count == inputDataCount && banbookDatainsert == 1) ||
+                if ((dicSerialData2nd.Count == inputDataCount && banbookDatainsert2nd == 1) ||
                     (dicSerialData2nd.Count == inputDataCount && CheckCas == true))
                 {
                     LogManager.getInstance().writeLog("입력 6", DebuglogQuery, Debuglog);
-                    banbookDatainsert = 5;
+                    banbookDatainsert2nd = 5;
 
                     if (reverseArr == true)
                     {
@@ -1187,7 +1202,7 @@ namespace SPX_Weight
                         serialData[i].Send(sendData);
                     }                    
                   //  LogManager.getInstance().writeLog("Send");
-                    Thread.Sleep(300);
+                    Thread.Sleep(200);
                 }
                 catch(ThreadAbortException ex)
                 {
@@ -1358,6 +1373,7 @@ namespace SPX_Weight
             //POS
             temp.Add(pos);
             //SIDE
+            if (true == sideDiv) side = side.Substring(0, side.Length -1);
             temp.Add(side);
             //StartEnd
             temp.Add(startend);
@@ -1365,8 +1381,7 @@ namespace SPX_Weight
             foreach(double setdata in inputtemp)
             {                
                 if(endcount >= c)
-                {
-                    
+                {                    
                     if (setdata > 30)
                     {
                         temp.Add(setdata.ToString("N1"));
@@ -1464,6 +1479,10 @@ namespace SPX_Weight
 
             LocalDataManager dbdata = LocalDataManager.getInstance();
             ClearDataGrid();
+            banbookDatainsert = 0;
+            banbookDatainsert2nd = 0;
+            onecyclepass2nd = false;
+            onecyclepass = false;
 
             int check = LocalResultTableReaminDataNotQMS();
             if(1 > check)
@@ -1479,6 +1498,7 @@ namespace SPX_Weight
                 dbdata.Truncatetable("SPIN_WEIGHT_RESULT");
                 dbdata.Truncatetable("WEIGHT_SPEC");
                 dbdata.Truncatetable("LOT_END");
+                dbdata.Truncatetable("PRODUCT_PLAN");
             }
         }
 
@@ -1543,31 +1563,39 @@ namespace SPX_Weight
         #region LocalDB에 SET 하는 부분들
         private void Set_ProductPlan()
         {
-            //날짜를 선택해서 넣어가지고 DB를 가져와야함
-            QMSDataManager qmsdbdata = QMSDataManager.getInstance();
-            LocalDataManager localdbdata = LocalDataManager.getInstance();
-
-            CurrentProductDate = ProductDataPicker.SelectedDate.Value.ToString("yyyyMMdd");
-            DataSet dataset = new DataSet();
-
-            if(true == bQmsdb_Connect)
+            try
             {
-                LogManager.getInstance().writeLog("in set productplan");
-                //라스트 import 두달 전으로 진행
-                DateTime dtDate;
-                dtDate = DateTime.ParseExact(LastImportDate, "yyyyMMdd", null);
-                LastImportDate = dtDate.AddDays(-60).ToString("yyyyMMdd");
+                //날짜를 선택해서 넣어가지고 DB를 가져와야함
+                QMSDataManager qmsdbdata = QMSDataManager.getInstance();
+                LocalDataManager localdbdata = LocalDataManager.getInstance();
 
-                dataset = qmsdbdata.GetProductPlanDataForQMS(plantid.ToString(), CurrentProductDate, LastImportDate);
-                LogManager.getInstance().writeLog("insert local productplan");
-                localdbdata.InsertProductPlan(dataset);
-            }            
-            //DataSet dataset2 = new DataSet();
-            //dataset2 = localdbdata.GetProductPlanDataForLocal(plantid.ToString(), CurrentProductDate);
-            //dataset 을 이제 localDB에 넣을 차례임
-            LastImportDate = CurrentProductDate;
+                CurrentProductDate = ProductDataPicker.SelectedDate.Value.ToString("yyyyMMdd");
+                DataSet dataset = new DataSet();
 
-            SetImportQmsTime();
+                if (true == bQmsdb_Connect)
+                {
+                    LogManager.getInstance().writeLog("in set productplan");
+                    //라스트 import 두달 전으로 진행
+                    DateTime dtDate;
+                    dtDate = DateTime.ParseExact(LastImportDate, "yyyyMMdd", null);
+                    LastImportDate = dtDate.AddDays(-60).ToString("yyyyMMdd");
+                    LogManager.getInstance().writeLog("latimportdate " + LastExportDate.ToString());
+                    dataset = qmsdbdata.GetProductPlanDataForQMS(plantid.ToString(), CurrentProductDate, LastImportDate);
+                    LogManager.getInstance().writeLog("insert local productplan");
+                    localdbdata.InsertProductPlan(dataset);
+                }
+                //DataSet dataset2 = new DataSet();
+                //dataset2 = localdbdata.GetProductPlanDataForLocal(plantid.ToString(), CurrentProductDate);
+                //dataset 을 이제 localDB에 넣을 차례임
+                LastImportDate = CurrentProductDate;
+
+                SetImportQmsTime();
+            }
+            catch(Exception e)
+            {
+                LogManager.getInstance().writeLog(e.ToString());
+            }
+            
         }
 
         /// <summary>
@@ -1604,7 +1632,6 @@ namespace SPX_Weight
                 ex.ToString();
             }            
             LastImportDate = CurrentProductDate;
-            //  SetImportQmsTime();
         }
 
         #endregion
@@ -1641,6 +1668,7 @@ namespace SPX_Weight
 
         private void comboBox_POS_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            return;
             LocalDataManager localDB = LocalDataManager.getInstance();
 
             //string tempDate = ProductDataPicker.SelectedDate.Value.ToString("yyyyMMdd");
@@ -1665,7 +1693,7 @@ namespace SPX_Weight
                 List<string> TempStartend = new List<string>();
                 List<string> tempLotseq = new List<string>();
                 List<string> endjust = new List<string>();
-                startPosCount = 0;
+                startPosCount = comboBox_POS.SelectedIndex;
                 sideCount = 0;
                 try
                 {
@@ -1754,6 +1782,10 @@ namespace SPX_Weight
                         }
                         strSideAdd = strSideAdd.Distinct().ToList();
 
+                        //사이드가 수량으로 나눠져있으면
+                        if(NextStepSide.Count > tempsidenum) sideDiv = true;
+                        else sideDiv = false;
+
                         if (localDB.CheckGumiExceptionLot(CurrentLot, out string notthing))
                         {
                             NextStepSide.Sort();
@@ -1789,9 +1821,23 @@ namespace SPX_Weight
                                 gCL = Convert.ToDouble(row[4]);
                                 gLCL = Convert.ToDouble(row[5]);
                                 gMark = row[6].ToString();
+                               double setpan = gUSL + gSL + gLSL + gCL;
+                                if (5 > setpan && 1 == dataspec.Tables.Count)
+                                {
+                                    MessageBox.Show("QMS has no Spec Data", "YesOrNo", MessageBoxButtons.YesNo);
+                                    hasNoSpec = true;
+                                }
                                 if (gMark == "~") SL_tolerance = 0.0;
                                 else SL_tolerance = Convert.ToDouble(row[7].ToString());
+                                hasNoSpec = false;
+                                
                             }
+                        }
+                        else
+                        {
+                            //스펙 등록된 자료가 0이면
+                            MessageBox.Show("QMS has no Spec Data", "YesOrNo", MessageBoxButtons.YesNo);
+                            hasNoSpec = true;
                         }
                     }
                     currentposindex = comboBox_POS.SelectedIndex;
@@ -1800,6 +1846,9 @@ namespace SPX_Weight
                 catch(Exception ex)
                 {
                     LogManager.getInstance().writeLog(ex.ToString());
+                    //스펙 등록된 자료가 0이면
+                    MessageBox.Show("QMS has no Spec Data", "YesOrNo", MessageBoxButtons.YesNo);
+                    hasNoSpec = true;
                 }
 
             }
@@ -1956,7 +2005,7 @@ namespace SPX_Weight
                     SerialSpeed = Convert.ToInt32(GetIniValue(iniFileFullPath, "RS232C SETTING", "Speed"));
                     plantid = Convert.ToInt32(GetIniValue(iniFileFullPath, "PLANT_INFO", "PlantID"));
 
-                    for(int i = 0; i < 16; i++)
+                    for(int i = 0; i < 25; i++)
                     {
                         string Lineset = string.Format("Line{0}", i + 1);                        
                         glineidSet.Add(GetIniValue(iniFileFullPath, "PLANT_INFO", Lineset));
@@ -1965,7 +2014,8 @@ namespace SPX_Weight
                     
                     Set_Scale = Convert.ToInt32(GetIniValue(iniFileFullPath, "PLANT_INFO", "ScaleCount"));
                     UseScaleCount = Convert.ToInt32(GetIniValue(iniFileFullPath, "PLANT_INFO", "UseScaleCount"));
-                    twoway = Convert.ToInt32(GetIniValue(iniFileFullPath, "PLANT_INFO", "WeightLine"));                  
+                    twoway = Convert.ToInt32(GetIniValue(iniFileFullPath, "PLANT_INFO", "WeightLine"));
+                    Debuglog = Convert.ToInt32(GetIniValue(iniFileFullPath, "PLANT_INFO", "DebugLog"));
                     inputDataCount = Set_Scale;
                     //SignalCount 6개저울 8개 들어오는게 하나가 아니어서 Signalcount를 만들어서 관리함 
                    // if (Set_Scale == 6) inputDataCount = 8;
@@ -2060,8 +2110,7 @@ namespace SPX_Weight
                     foreach (DataRow row in table.Rows)
                     {
                         //설정하기 지금 검사하는 제품의 SPEC
-                        //usl,sl,lsl,ucl,cl,lcl,mark                       
-
+                        //usl,sl,lsl,ucl,cl,lcl,mark   
                     }
                 }
             }
@@ -2116,6 +2165,9 @@ namespace SPX_Weight
                 if (gUSL >= weightdata && gLSL <= weightdata) temp = "AA";
                 else temp = "AB";
             }
+            //스펙이없지? 그럼 AA야
+            if (true == hasNoSpec) temp = "AA";
+            
             return temp;
         }
         #endregion
@@ -2229,6 +2281,7 @@ namespace SPX_Weight
         {
             //inputDataCount = 0;
             banbookDatainsert = 0;
+            banbookDatainsert2nd = 0;
             checkinputfirst = 0;
             if (true == checkBox_SideCheck.IsChecked) ApplySelectSide();
             runsendthread();
@@ -2265,10 +2318,11 @@ namespace SPX_Weight
                     string strmax = Text_WeightMax.Text;
                     string strmin = Text_WeightMin.Text;
 
-                    commondata.makeCommonData(glineid, strrag, CurrentLot, CurrentProductDate, comboBox_DOF.SelectedItem.ToString(), strmin, strmax, NextStartEnd, Set_Scale, SideChangeLogic(), NextStepSide, glot_seq);
-
                     var tempside = SingleSide.Distinct().ToList();
                     var endcount = Set_Scale;
+                    
+                    commondata.makeCommonData(glineid, strrag, CurrentLot, CurrentProductDate, comboBox_DOF.SelectedItem.ToString(), strmin, strmax, NextStartEndForExcel, Set_Scale, SideChangeLogic(), SingleSide, glot_seq);
+
                     List<string> temppos = new List<string>();
                     foreach(var item in comboBox_POS.Items)
                     {
@@ -3009,7 +3063,214 @@ namespace SPX_Weight
             e.Handled = regex.IsMatch(e.Text);
         }
 
+        /// <summary>
+        /// select Change 를 Drop 로 변경함 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void comboBox_POS_DropDownClosed(object sender, EventArgs e)
+        {
+            LocalDataManager localDB = LocalDataManager.getInstance();
 
+            ///clr 
+            comboBox_SIDE.Items.Clear();
+            textBox_sideSelect.Clear();
+            SelectSide.Clear();
+            ///체크박스 해제
+            checkBox_SideCheck.IsChecked = false;
+            //string tempDate = ProductDataPicker.SelectedDate.Value.ToString("yyyyMMdd");
+            string lot_seq = "1";
+            if (comboBox_POS.SelectedItem != null)
+            {
+                if (true == checkBox_TestLot.IsChecked)
+                {
+                    //End_qty = Set_Scale;
+                    //runScaleCount = Set_Scale;
+                    End_qty = UseScaleCount;
+                    runScaleCount = UseScaleCount;
+                    return;
+                }
+                DataSet dataset = localDB.GetSideForLocal(plantid.ToString(), CurrentProductDate, comboBox_HO.SelectedItem.ToString(), CurrentLot, comboBox_POS.SelectedItem.ToString());
+                comboBox_SIDE.Items.Clear();
+                NextStepSide.Clear();
+                NextStartEnd.Clear();
+                StartEndCount.Clear();
+
+                List<string> TempSide = new List<string>();
+                List<string> TempStartend = new List<string>();
+                List<string> tempLotseq = new List<string>();
+                List<string> endjust = new List<string>();
+                startPosCount = comboBox_POS.SelectedIndex;
+                sideCount = 0;
+                try
+                {
+                    if (dataset.Tables.Count > 0)
+                    {
+                        foreach (DataRow row in dataset.Tables[0].Rows)
+                        {
+                            comboBox_SIDE.Items.Add(row[0].ToString());
+                            TempSide.Add(row[0].ToString());
+                            End_qty = Convert.ToInt32(row[1]);
+                            TempStartend.Add(row[2].ToString());
+                            tempLotseq.Add(row[3].ToString());
+                            endjust.Add(row[1].ToString());
+                            lot_seq = row[3].ToString();
+                        }
+                        tempLotseq = tempLotseq.Distinct().ToList();
+                        //이러면 LOT SEQ 중복임
+                        if (tempLotseq.Count != 1)
+                        {
+                            string tempmessage = string.Format("Lot seq  YES = {0} NO = {1} \n" +
+                                "{0} -  END Count {2}" +
+                                "{1} -  END Count {3}" +
+                                "관리자 문의 바람", tempLotseq[0], tempLotseq[1], endjust[0], endjust[1]);
+                            var yesorno = MessageBox.Show(tempmessage, "YesOrNo", MessageBoxButtons.YesNo);
+                            if (System.Windows.Forms.DialogResult.Yes == yesorno)
+                            {
+                                lot_seq = tempLotseq[0];
+                            }
+                            else
+                            {
+                                lot_seq = tempLotseq[1];
+                            }
+                        }
+
+                        glot_seq = Convert.ToInt32(lot_seq);
+                        //end qty 만들기 전에 테이블 만들기
+                        MakeLineEndData(lot_seq);
+                        SingleEnd.Clear();
+                        SingleSide.Clear();
+                        SetLotAndEnd.Clear();
+                        //LOT_END 에 넣은걸 활용 하자
+                        //END_ID, SIDE, END_SIDE 를 가져옴
+                        DataSet endData = localDB.GetLotEnd();
+
+                        Dictionary<string, string> endDic = new Dictionary<string, string>();
+                        if (endData.Tables.Count > 0)
+                        {
+                            foreach (DataRow row in endData.Tables[0].Rows)
+                            {
+                                string dickey = string.Format(row[3].ToString() + row[0].ToString());
+                                //키를 END_ID이고 END_SIDE를 가져옴
+                                if (false == endDic.ContainsKey(dickey))
+                                {
+                                    //0705 하나의 POS에 두개 LOT들어간 애들 보면 ENDID가 겹쳐서 딕셔너리 키값으로 중복됨
+                                    // 그래서 LOT 까지 만들어서 넣어주고 나중에 ENDID 쓸때 LOT string 파싱해서 짤라쓰자
+                                    endDic.Add(dickey, row[1].ToString());
+                                    SingleEnd.Add(row[0].ToString());
+                                    SingleSide.Add(row[1].ToString());
+                                    //두개 한묶음으로 쓸때 필요한 Side랑 LOT 랑 구분하는 딕셔너리 만듬
+                                    if (false == SetLotAndEnd.ContainsKey(row[1].ToString()))
+                                    {
+                                        SetLotAndEnd.Add(row[1].ToString(), row[3].ToString());
+                                    }
+                                }
+                            }
+                        }
+                        var tempend = endDic.Values.Distinct().ToList();
+
+                        //사이드의 갯수 확인
+                        int tempsidenum = tempend.Count();
+                        comboBox_SIDE.Items.Clear();
+                        List<string> strSideAdd = new List<string>();
+                        //end 사이드로 분류해서 나누고싶다     
+                        for (int i = 0; i < tempsidenum; i++)
+                        {
+                            List<string> tempside =
+                                (from sidetemp in endDic
+                                 where sidetemp.Value == tempend[i]
+                                 select sidetemp.Key.ToString().Substring(5)
+                                 ).ToList();
+
+                            MakeStartEnd(tempside, tempside.Count(), tempend[i]);
+                            strSideAdd.Add(tempend[i]);
+
+                            End_qty = tempside.Count();
+                        }
+                        strSideAdd = strSideAdd.Distinct().ToList();
+
+                        //사이드가 수량으로 나눠져있으면
+                        if (NextStepSide.Count > tempsidenum) sideDiv = true;
+                        else sideDiv = false;
+
+                        if (localDB.CheckGumiExceptionLot(CurrentLot, out string notthing))
+                        {
+                            NextStepSide.Sort();
+                            NextStartEnd.Sort();
+                        }
+
+                        foreach (var input in NextStepSide)
+                        {
+                            comboBox_SIDE.Items.Add(input);
+                        }
+
+                        SetDofComboBox();
+
+
+                        LogManager.getInstance().writeLog("GET SPEC" + plantid.ToString() + "LOT = " + CurrentLot + "LOT_SEQ = " + lot_seq.ToString());
+                        DataSet dataspec = localDB.GetSpinWeightSpec_Local(plantid.ToString(), CurrentLot, lot_seq);
+
+                        if (dataspec.Tables.Count > 0)
+                        {
+                            foreach (DataRow row in dataspec.Tables[0].Rows)
+                            {
+                                label_WeightMin.Content = Convert.ToDouble(row[2]).ToString("F1");
+                                Text_WeightMin.Text = Convert.ToDouble(row[2]).ToString("F1");
+                                label_SL.Content = Convert.ToDouble(row[1]).ToString("F1");
+                                label_WeightMax.Content = Convert.ToDouble(row[0]).ToString("F1");
+                                Text_WeightMax.Text = Convert.ToDouble(row[0]).ToString("F1"); ;
+                                label_ErrorRange.Content = row[7]?.ToString() ?? "";
+
+                                gUSL = Convert.ToDouble(row[0]);
+                                gSL = Convert.ToDouble(row[1]);
+                                gLSL = Convert.ToDouble(row[2]);
+                                gUCL = Convert.ToDouble(row[3]);
+                                gCL = Convert.ToDouble(row[4]);
+                                gLCL = Convert.ToDouble(row[5]);
+                                gMark = row[6].ToString();
+                                double setpan = gUSL + gSL + gLSL + gCL;
+                                if (5 > setpan && 1 == dataspec.Tables.Count)
+                                {
+                                    MessageBox.Show("QMS has no Spec Data", "YesOrNo", MessageBoxButtons.YesNo);
+                                    hasNoSpec = true;
+                                }
+                                if (gMark == "~") SL_tolerance = 0.0;
+                                else SL_tolerance = Convert.ToDouble(row[7].ToString());
+                                hasNoSpec = false;
+
+                            }
+                        }
+                        else
+                        {
+                            //스펙 등록된 자료가 0이면
+                            MessageBox.Show("QMS has no Spec Data", "YesOrNo", MessageBoxButtons.YesNo);
+                            hasNoSpec = true;
+                        }
+                    }         
+                    currentposindex = comboBox_POS.SelectedIndex;
+                    startPosCount = currentposindex;
+                }
+                catch (Exception ex)
+                {
+                    LogManager.getInstance().writeLog(ex.ToString());
+                    //스펙 등록된 자료가 0이면
+                    MessageBox.Show("QMS has no Spec Data", "YesOrNo", MessageBoxButtons.YesNo);
+                    hasNoSpec = true;
+                }
+
+            }
+            //POS 까지 선택하면 grid 를 바꿔보자
+            //setGridMax(End_qty);
+            NextStartEndForExcel.Clear();
+            currentposindex = comboBox_POS.SelectedIndex;
+            startPosCount = currentposindex;
+   
+            foreach(string temp in NextStartEnd)
+            {
+                NextStartEndForExcel.Add(temp);
+            }
+            setGridMax(runScaleCount);
+        }
     }
 
     public class NameToBrushConverter : IValueConverter

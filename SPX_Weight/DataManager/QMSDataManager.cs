@@ -803,7 +803,7 @@ namespace SPX_Weight.DataManager
         public bool InsertSpinWeightResultToQMS(int insert, QMS_SpinWeightResult WeightTempData)
         {
             QMS_SpinWeightResult spec = WeightTempData;
-
+            string timetemp = UtilManager.GetTimeWithMilli();
             if (spec != null)
             {
                 //INSERT에서 FROM DUAL WHERE NOT EXISTS 구분할 WHERER 구문을 만들어 봄
@@ -838,9 +838,9 @@ namespace SPX_Weight.DataManager
                     spec.Decision_id,
                     spec.Spec_color,
                     spec.Created_by,
-                    UtilManager.GetTimeWithMilli(),
+                    timetemp,
                     spec.Modified_by,
-                    UtilManager.GetTimeWithMilli()                  
+                    timetemp
                     );
 
                 if (1 == InsertOnly("SPIN_WEIGHT_RESULT", value)) return true;

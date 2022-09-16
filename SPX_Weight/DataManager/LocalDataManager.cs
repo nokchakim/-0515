@@ -1172,16 +1172,6 @@ namespace SPX_Weight
 
         public DataSet GetSpinWeightSpec_Local(string PLANT_ID, string LOT, string LOT_SEQ = "1")
         {
-
-            //현업에선 LOT_SEQ를 입력하지 않든데?
-            //string productPlanSelectQuery = string.Format("SELECT LSL, USL from WEIGHT_SPEC WHERE {0} = {1} AND {2} = {3} AND {4} = {5};",
-            //    specdata.Plant_Id,
-            //    PLANT_ID,
-            //    specdata.Lot,
-            //    LOT,
-            //    specdata.Lot_seq,
-            //    LOT_SEQ);
-
             string productPlanSelectQuery = string.Format("SELECT USL, SL, LSL, UCL, CL, LCL, MARK, SL_TOLERANCE from WEIGHT_SPEC WHERE {0} = '{1}' AND {2} = '{3}' AND {4} = '{5}';",
                 QMS_SpinWeightSpecT.Plant_Id,
                 PLANT_ID,
@@ -1191,14 +1181,12 @@ namespace SPX_Weight
                 LOT_SEQ
                 );
 
-
             return ReturnSingleQuery(productPlanSelectQuery);
         }
 
 
         public DataSet GetPOS_END(string PlantId, string Date, string Pos, string Line, string Lotseq, string lot)
         {
-
             string productPlanSelectQuery = "";
             string combilot = "";
 
