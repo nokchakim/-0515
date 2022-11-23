@@ -620,6 +620,12 @@ namespace SPX_Weight
                     LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 갯수 " + runScaleCount));
                     LogManager.getInstance().writeLog(string.Format((portN + 1) + "라인" + "데이터 " + arraydata));
 
+                    if(runScaleCount < getSerialData.Count())
+                    {
+                        // Last Ignore check 표기 예외 처리 진행 
+                        LastIgnoreOptionInDoubleLoadCellandSingleSerial(runScaleCount, twoway);
+                    }
+
                     getalldataTwoWay += 1;
                     //여기서 라인 1 라인 2 들어온거 계산해서 두개 다 들어온 데이터 쌓일 경우에만 넣기
                     //runscalecount 는 두개 이니까 *2로 해줘서 넣어야함
@@ -1373,7 +1379,7 @@ namespace SPX_Weight
             //POS
             temp.Add(pos);
             //SIDE
-            if (true == sideDiv) side = side.Substring(0, side.Length -1);
+            //if (true == sideDiv) side = side.Substring(0, side.Length -1);
             temp.Add(side);
             //StartEnd
             temp.Add(startend);
@@ -1435,7 +1441,7 @@ namespace SPX_Weight
             }
             if (true == checkBox_Reverse.IsChecked) getSerialData.Reverse();
             if (true == checkBox_SideCheck.IsChecked) ApplySelectSide();
-
+            LastIgnoreOptionInDoubleLoadCellandSingleSerial(runScaleCount, twoway);
             UpdataSerialDataWightScale(setscalecountInthisTest);
             UPdataSeiralDataToGridAndDB(1);
            
@@ -1895,6 +1901,7 @@ namespace SPX_Weight
             int localsetscale = UseScaleCount;
             /// 여기서 Ingnore Last 옵션을 적용 해야 할 타이밍인거 같음
             /// 
+            if (true == checkBox_IgnoreLast1Range.IsChecked) localsetscale += -1; 
             if (true == checkBox_IgnoreLast.IsChecked) localsetscale += -1;
             //2Scale 관련해서 측정하는 법
             if (true == checkBox_2Scale1Result.IsChecked) localsetscale = 4 / 2;
@@ -2318,7 +2325,9 @@ namespace SPX_Weight
                     string strmax = Text_WeightMax.Text;
                     string strmin = Text_WeightMin.Text;
 
-                    var tempside = SingleSide.Distinct().ToList();
+                    //var tempside = SingleSide.Distinct().ToList();
+                    
+                    var tempside = NextStepSide.Distinct().ToList();
                     var endcount = Set_Scale;
                     
                     commondata.makeCommonData(glineid, strrag, CurrentLot, CurrentProductDate, comboBox_DOF.SelectedItem.ToString(), strmin, strmax, NextStartEndForExcel, Set_Scale, SideChangeLogic(), SingleSide, glot_seq);
@@ -2416,7 +2425,11 @@ namespace SPX_Weight
                             inputresut.Lot = templot;
                         }
                         inputresut.Lot_seq = glot_seq.ToString();
-                        inputresut.Side = item.Row.ItemArray[4].ToString();
+                        
+                        
+                        if (true == sideDiv) inputresut.Side = item.Row.ItemArray[4].ToString().Substring(0, item.Row.ItemArray[4].ToString().Length - 1);
+                        else inputresut.Side = item.Row.ItemArray[4].ToString();
+
                         inputresut.Spec_color = "";
                         inputresut.Created_by = CurrentLoginUserID;
                         inputresut.Modified_by = CurrentLoginUserID;
@@ -2431,6 +2444,7 @@ namespace SPX_Weight
                         int endindex = Convert.ToInt32(endid[0].Substring((endid[0].Length - 2), (endid[0].Length - 1)));
                         int gridlenght = 6 + Set_Scale;
 
+                        if (true == checkBox_IgnoreLast1Range.IsChecked) gridlenght += -1;
                         if (true == checkBox_IgnoreLast.IsChecked) gridlenght += -1;
 
                         for (int j = 6; j < gridlenght; j++)
@@ -2472,7 +2486,7 @@ namespace SPX_Weight
             SolidColorBrush brush = new SolidColorBrush(Colors.Black);
 
             int gridlenght = 6 + Set_Scale;
-
+            if (true == checkBox_IgnoreLast1Range.IsChecked) gridlenght += -1; 
             if (true == checkBox_IgnoreLast.IsChecked) gridlenght += -1;
             try
             {
@@ -3061,6 +3075,23 @@ namespace SPX_Weight
         {
             Regex regex = new Regex("[^0-9.]+");
             e.Handled = regex.IsMatch(e.Text);
+        }
+        /// <summary>
+        /// LAST Ignore 옵션을 진행 할때 저울 두개지만 한개의 serial 로 통신하는 경우(동나이에서 발생함)
+        /// </summary>
+        private void LastIgnoreOptionInDoubleLoadCellandSingleSerial(int runcount, int twowaycount)
+        {                    
+            int b = runcount / 2;
+            //중간에서 체크 갯수만큼 빼주고, 중간은 arraycount / 2 하면됨
+            int d = 0;
+
+            if (true == checkBox_IgnoreLast1Range.IsChecked) d += 1;
+            if (true == checkBox_IgnoreLast.IsChecked) d += 1;
+
+            //맨 뒤에 체크 갯수만큼 빼주고
+            if(1 == twowaycount)
+                getSerialData.RemoveRange(b, d);
+            getSerialData.RemoveRange(getSerialData.Count() - 2, d);
         }
 
         /// <summary>

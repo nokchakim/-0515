@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SPX_Weight"
         mc:Ignorable="d"
-        Title="HYOSUNG ITX                 Ver:20220815RD " Height="820" Width="1280.8" BorderBrush="{DynamicResource {x:Static SystemColors.DesktopBrushKey}}" Background="#FFFBF6F6" ResizeMode="CanMinimize" Topmost="False" Closed="MainWindowView_Closed">
+        Title="HYOSUNG ITX                 Ver:20221020TS_VN " Height="820" Width="1280.8" BorderBrush="{DynamicResource {x:Static SystemColors.DesktopBrushKey}}" Background="#FFFBF6F6" ResizeMode="CanMinimize" Topmost="False" Closed="MainWindowView_Closed">
     <Window.Resources>
         <local:ValueToBruchConverter x:Key="ValueToBruchConverter"/>
     </Window.Resources>
@@ -242,7 +242,7 @@
                 <Button x:Name="button_Skip" Content="Skip" HorizontalAlignment="Left" VerticalAlignment="Top" Width="124" Height="47" Margin="565,0,0,0" Click="button_Skip_Click" Grid.Column="1"/>
             </Grid>
             <CheckBox x:Name="checkBox_2Scale1Result" Content="1Yarn 2Scale" HorizontalAlignment="Left" Margin="126,4.8,0,25.6" Grid.Row="2" Checked="checkBox_2Scale1Result_Checked" FontSize="16" Width="115"/>
-            <CheckBox x:Name="checkBox_IgnoreLast" Content="Ignore Last" HorizontalAlignment="Left" Margin="126,26.8,0,0" Grid.Row="2" VerticalAlignment="Top" FontSize="16" Width="140" Checked="checkBox_IgnoreLast_Checked" Height="20"/>
+            <CheckBox x:Name="checkBox_IgnoreLast" Content="Ignore Last" HorizontalAlignment="Left" Margin="148,26.8,0,0" Grid.Row="2" VerticalAlignment="Top" FontSize="16" Width="140" Checked="checkBox_IgnoreLast_Checked" Height="20"/>
             <CheckBox x:Name="checkBox_TestLot" Content="Test Lot Process" HorizontalAlignment="Left" Margin="268,4.8,0,25.6" Grid.Row="2" FontSize="16" Width="151" Checked="checkBox_TestLot_Checked" Unchecked="checkBox_TestLot_Checked" Grid.ColumnSpan="2"/>
             <Label x:Name="label_Conncet" Content="Connect" HorizontalAlignment="Left" Margin="874.2,0,0,0" VerticalAlignment="Top" Height="39" Width="89" FontWeight="Bold" FontFamily="Malgun Gothic" Foreground="#FFE2E7DC" Grid.Column="1" FontSize="18"/>
             <CheckBox x:Name="checkBox_SideCheck" Content="" Margin="595,4,330,19" Grid.Row="1" FontSize="14" Panel.ZIndex="1" Checked="checkBox_SideCheck_Checked" Grid.Column="1" RenderTransformOrigin="0,0" UseLayoutRounding="False" VerticalContentAlignment="Center" HorizontalAlignment="Center" Width="16" Height="16" VerticalAlignment="Center" Padding="4,-1,0,0" HorizontalContentAlignment="Center"/>
@@ -260,6 +260,7 @@
                     <ImageBrush ImageSource="image/my_search_pre.png"/>
                 </Button.Background>
             </Button>
+            <CheckBox x:Name="checkBox_IgnoreLast1Range" Content="" HorizontalAlignment="Left" Margin="126,26.8,0,0" Grid.Row="2" VerticalAlignment="Top"/>
 
         </Grid>
         <Label x:Name="label_Conncet2" Content="Connect" HorizontalAlignment="Left" Margin="1076,2,0,0" VerticalAlignment="Top" Height="39" Width="89" FontWeight="Bold" FontFamily="Malgun Gothic" Foreground="#FFE2E7DC" FontSize="18" Grid.RowSpan="2"/>

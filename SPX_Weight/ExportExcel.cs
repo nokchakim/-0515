@@ -151,6 +151,7 @@ namespace SPX_Weight
                     {
                         sidec = common.NextStepSide.IndexOf(ds.Rows[i][4].ToString());
                     }
+                    sidec = common.NextStepSide.IndexOf(ds.Rows[i][4].ToString());
                     string temptemp = tempside[0]?.Substring(0, tempside[0].Length - 2);
 
                     temptemp = ds.Rows[i][4].ToString();
@@ -395,9 +396,14 @@ namespace SPX_Weight
         public void InFomula(Excel._Worksheet ws, int y, int x, int range, int count)
         {
             Excel.Range rg = ws.Cells[y, x];
+            int asciiJ = 74;
+            int asciiTarget = asciiJ + count - 1;
+            char temp = Convert.ToChar(asciiTarget);
+            string endps = temp.ToString();
+      
             //rg.Formula = string.Format("=AVERAGE(J{0}:{1}{2})",y, TransCellLocate(10+count-6), y+ range);
             //  ws.Cells[y,x] = string.Format("=AVERAGE(J{0}:{1}{2})", y, TransCellLocate(10 + count - 1), y + range);
-            ws.Cells[y, x] = string.Format("=AVERAGE(J{0}:U{1})", y, y + range);
+            ws.Cells[y, x] = string.Format("=AVERAGE(J{0}:{1}{2})", y, endps, y + range);
 
         }
 
